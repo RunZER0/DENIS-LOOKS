@@ -84,6 +84,14 @@
     if (cls) document.body.dataset.page = cls.replace(/^lune-/, '').replace(/-page$/, '');
   }
 
+  function loadDataBridge() {
+    if (document.querySelector('script[data-lune-stashi]')) return;
+    const script = document.createElement('script');
+    script.src = 'lune-stashi.js?v=20260907a';
+    script.dataset.luneStashi = '1';
+    document.head.appendChild(script);
+  }
+
   function init() {
     migrateLegacyState();
     syncIdentity();
@@ -98,11 +106,13 @@
       }
     });
     window.addEventListener('lune:taste-changed', syncSavedCount);
-    window.addEventListener('aura:taste-changed', syncSavedCount); // temporary bridge until recommendation layer moves in Part 4
+    window.addEventListener('aura:taste-changed', syncSavedCount);
     window.addEventListener('pageshow', () => { syncIdentity(); syncSavedCount(); syncRoute(); });
   }
 
   window.LuneShell = { STORAGE, getIdentity, setIdentity, savedTotal, syncSavedCount };
+
+  loadDataBridge();
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();

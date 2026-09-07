@@ -1,6 +1,14 @@
 services:
   - type: web
     name: lune-nails
-    env: static
-    buildCommand: npm run build
-    staticPublishPath: ./
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    preDeployCommand: npm run migrate
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
