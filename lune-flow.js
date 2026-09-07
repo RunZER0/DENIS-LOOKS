@@ -27,20 +27,20 @@
       item.setAttribute('tabindex', '0');
       item.setAttribute('aria-pressed', item.classList.contains('active') ? 'true' : 'false');
     });
-    document.querySelectorAll('.lune-work-page .card-image-wrap').forEach(item => {
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-      if (!item.getAttribute('aria-label')) {
-        const title = item.closest('.gallery-card')?.querySelector('.card-title')?.textContent?.trim() || 'Lune set';
-        item.setAttribute('aria-label', `Open ${title}`);
+    document.querySelectorAll('.lune-work-page .card-image-wrap > img').forEach(image => {
+      image.setAttribute('role', 'button');
+      image.setAttribute('tabindex', '0');
+      if (!image.getAttribute('aria-label')) {
+        const title = image.closest('.gallery-card')?.querySelector('.card-title')?.textContent?.trim() || 'Lune set';
+        image.setAttribute('aria-label', `Open ${title}`);
       }
     });
-    document.querySelectorAll('.lune-inspo-page #inspo-scroll .inspo-card').forEach(item => {
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-      if (!item.getAttribute('aria-label')) {
-        const title = item.querySelector('.inspo-style')?.textContent?.trim() || 'Lune inspiration';
-        item.setAttribute('aria-label', `Open ${title}`);
+    document.querySelectorAll('.lune-inspo-page #inspo-scroll .inspo-img-wrap > img').forEach(image => {
+      image.setAttribute('role', 'button');
+      image.setAttribute('tabindex', '0');
+      if (!image.getAttribute('aria-label')) {
+        const title = image.closest('.inspo-card')?.querySelector('.inspo-style')?.textContent?.trim() || 'Lune inspiration';
+        image.setAttribute('aria-label', `Open ${title}`);
       }
     });
   }
@@ -154,7 +154,7 @@
   document.addEventListener('keydown', event => {
     if (!['Enter', ' '].includes(event.key)) return;
     const target = event.target.closest(
-      '.lune-work-page .service-list-item[data-category], .lune-work-page .card-image-wrap, .lune-inspo-page #inspo-scroll .inspo-card'
+      '.lune-work-page .service-list-item[data-category], .lune-work-page .card-image-wrap > img, .lune-inspo-page #inspo-scroll .inspo-img-wrap > img'
     );
     if (!target) return;
     event.preventDefault();
