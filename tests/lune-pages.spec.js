@@ -12,15 +12,23 @@ async function waitForLune(page) {
 async function assertSurface(page, path, label) {
   await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
   await waitForLune(page);
-  const state = await page.evaluate(() => ({
-    width: document.documentElement.clientWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-    text: document.body.innerText,
-    title: document.title
-  }));
+  const state = await page.evaluate(() => {
+    const transition = document.querySelector('.page-transition');
+    const hero = document.querySelector('.hero-art');
+    return {
+      width: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      text: document.body.innerText,
+      title: document.title,
+      transitionLabel: transition ? getComputedStyle(transition, '::after').content : '',
+      heroLabel: hero ? getComputedStyle(hero, '::before').content : ''
+    };
+  });
   assert(state.scrollWidth <= state.width + 2, `${label}: horizontal overflow ${state.scrollWidth}px > ${state.width}px`);
   assert(!/\bAURA\b|Denis|Embu/i.test(state.text), `${label}: legacy public branding is visible`);
   assert(/Lune/i.test(state.title), `${label}: document title does not identify Lune`);
+  if (state.transitionLabel) assert(/LUNE/i.test(state.transitionLabel), `${label}: page transition still uses legacy branding`);
+  if (state.heroLabel) assert(/LUNE/i.test(state.heroLabel), `${label}: hero label still uses legacy branding`);
   await page.locator('.site-header').first().waitFor({ state: 'visible' });
 }
 
@@ -30,10 +38,17 @@ async function desktopJourney(browser) {
 
   for (const path of publicPages) await assertSurface(page, path, `desktop ${path}`);
 
+  await page.goto(`${BASE}/favorites.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#taste-recommendations .taste-card');
+  assert((await page.locator('#taste-recommendations .taste-card').count()) >= 4, 'saved: zero state should still contain useful recommendations');
+
   await page.goto(`${BASE}/work.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#gallery-grid .gallery-card');
   assert.strictEqual(await page.locator('#gallery-grid .gallery-card').count(), 14, 'work: expected 14 catalog cards');
+  const desktopColumns = await page.locator('#gallery-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  assert.strictEqual(desktopColumns, 3, 'desktop work gallery should use three columns');
 
+  await page.waitForSelector('#gallery-grid .card-image-wrap > img[role="button"]');
   const image = page.locator('#gallery-grid .gallery-card').first().locator('.card-image-wrap > img');
   await image.focus();
   await page.keyboard.press('Enter');
@@ -48,15 +63,21 @@ async function desktopJourney(browser) {
   await page.goto(`${BASE}/work.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#gallery-search');
   await page.locator('#gallery-search').fill('Chrome');
-  await page.waitForTimeout(80);
+  await page.waitForFunction(() => {
+    const link = document.querySelector('.nav-actions a[href*="inspo.html"]');
+    return link && /focus=Chrome/i.test(link.getAttribute('href') || '');
+  });
   const inspoHref = await page.locator('.nav-actions a[href*="inspo.html"]').getAttribute('href');
   assert(inspoHref && /focus=Chrome/i.test(inspoHref), 'work -> inspo should retain the current direction');
 
   await page.goto(`${BASE}/${inspoHref}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#inspo-scroll .inspo-card');
+  const desktopInspoColumns = await page.locator('#inspo-scroll').evaluate(el => getComputedStyle(el).columnCount);
+  assert.strictEqual(desktopInspoColumns, '3', 'desktop inspo edit should use three columns');
   await page.waitForSelector('.lune-context-note');
   assert(/Chrome/i.test(await page.locator('.lune-context-note').innerText()), 'inspo should explain the retained direction');
 
+  await page.waitForSelector('#inspo-scroll .inspo-img-wrap > img[role="button"]');
   const inspoImage = page.locator('#inspo-scroll .inspo-card').first().locator('.inspo-img-wrap > img');
   await inspoImage.focus();
   await page.keyboard.press('Enter');
