@@ -233,4 +233,12 @@
     taste.dataset.luneTasteEngine = '5';
     document.body.appendChild(taste);
   }
+
+  if (!document.querySelector('script[data-lune-discovery]')) {
+    const discovery = document.createElement('script');
+    discovery.src = 'discovery-experience.js?v=20260907a';
+    discovery.async = false;
+    discovery.dataset.luneDiscovery = '1';
+    document.body.appendChild(discovery);
+  }
 })();
