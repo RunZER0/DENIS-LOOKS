@@ -24,19 +24,13 @@
         <button class="admin-nav-item" data-view="offers"><span>Offers</span><b>10</b></button>
         <button class="admin-nav-item" data-view="recommendations"><span>Recommendations</span><b>11</b></button>
       </nav>
-      <div class="admin-sidebar-foot">
-        <a href="index.html">Open Lune ↗</a>
-        <span data-admin-clock></span>
-      </div>
+      <div class="admin-sidebar-foot"><a href="index.html">Open Lune ↗</a><span data-admin-clock></span></div>
     </aside>
 
     <main class="admin-main">
       <header class="admin-topbar">
         <button class="admin-menu" type="button" aria-label="Open navigation" data-menu-toggle>☰</button>
-        <div>
-          <div class="admin-kicker" data-view-kicker>NETWORK</div>
-          <h1 data-view-title>Overview</h1>
-        </div>
+        <div><div class="admin-kicker" data-view-kicker>NETWORK</div><h1 data-view-title>Overview</h1></div>
         <div class="admin-top-actions">
           <label class="admin-search"><span>⌕</span><input type="search" placeholder="Search operations" data-global-search></label>
           <button class="admin-primary" type="button" data-quick-action>New partner</button>
@@ -44,10 +38,7 @@
       </header>
 
       <section class="admin-view active" data-view-panel="overview">
-        <div class="overview-intro">
-          <div><span class="admin-kicker">TODAY</span><h2>See the network before it becomes a problem.</h2></div>
-          <p>Bookings, partner capacity, money and quality sit in one operating view.</p>
-        </div>
+        <div class="overview-intro"><div><span class="admin-kicker">TODAY</span><h2>See the network before it becomes a problem.</h2></div><p>Bookings, partner capacity, money and quality sit in one operating view.</p></div>
         <div class="metric-grid" id="metric-grid"></div>
         <div class="admin-grid two-one">
           <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">LIVE ORDERS</span><h3>Needs attention</h3></div><button class="admin-link" data-jump="orders">All orders →</button></div><div id="attention-orders"></div></section>
@@ -131,5 +122,6 @@
   <div class="admin-toast" role="status" aria-live="polite"></div>
   <script src="lune-catalog.js?v=20260907a"></script>
   <script src="admin.js?v=20260907a"></script>
+  <script src="admin-services.js?v=20260907a"></script>
 </body>
 </html>
