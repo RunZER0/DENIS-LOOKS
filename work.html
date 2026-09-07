@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work | Aura Nails Hub</title>
+  <meta name="description" content="Explore nail sets by Aura Nails Hub in Embu — natural nails, Gumgel structure, extensions, chrome, 3D art and pedicures.">
+  <meta name="theme-color" content="#f4eee6">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="site-v2.css?v=20260907b">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    window.firebaseApp = { initializeApp };
+    window.firebaseFirestore = { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc };
+    window.firebaseStorage = { getStorage, ref, uploadString, getDownloadURL };
+  </script>
+</head>
+<body class="aura-work-page">
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="index.html"><strong>AURA</strong><span>Nail studio · Embu</span></a>
+      <div class="nav-links">
+        <a href="work.html" aria-current="page">Work</a>
+        <a href="references.html">References</a>
+        <a href="index.html#standard">The standard</a>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-note">House calls + studio</span>
+        <a class="button" href="https://wa.me/254741959888?text=Hi%20Denis%20%E2%80%94%20I%27d%20like%20to%20book%20a%20nail%20appointment%20with%20Aura%20Nails%20Hub.%20What%27s%20available%3F" target="_blank" rel="noopener">Book a set <span class="arrow">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="shell page-hero-grid">
+        <div class="page-index hero-copy"><b>01</b> / WORK</div>
+        <div class="hero-copy">
+          <div class="eyebrow">THE PORTFOLIO</div>
+          <h1 class="display">Look closely.<br>The details hold up.</h1>
+          <p class="lede">Every set starts with the nail in front of Denis, not a preset template. Filter by service, then look at the shape, finish and detail before deciding what feels like you.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-section" id="services-portfolio">
+      <div class="shell">
+        <div class="section-heading-row">
+          <div data-reveal><div class="eyebrow">START WITH THE SERVICE</div></div>
+          <div data-reveal style="--delay:80ms"><h2 class="display">Then choose how far to take it.</h2><p class="lede">The filter is practical. The work is the persuasion.</p></div>
+        </div>
+
+        <div class="services-list" id="services-filter-list" data-reveal>
+          <div class="service-list-item active" data-category="all"><h3 class="service-card-title">All work</h3><p>Every finish, shape and structure</p></div>
+          <div class="service-list-item" data-category="Gel Polish"><h3 class="service-card-title">Gel on natural nails</h3><div class="service-list-price"><span class="amount">From Ksh 400</span></div></div>
+          <div class="service-list-item" data-category="Tips + Gel"><h3 class="service-card-title">Tips + gel</h3><div class="service-list-price"><span class="amount">Ksh 800–1,200</span></div></div>
+          <div class="service-list-item" data-category="Gumgel"><h3 class="service-card-title">Gumgel structure</h3><div class="service-list-price"><span class="amount">From Ksh 1,000</span></div></div>
+          <div class="service-list-item" data-category="3d"><h3 class="service-card-title">3D + chrome</h3><div class="service-list-price"><span class="amount">Art + Ksh 200–600</span></div></div>
+          <div class="service-list-item" data-category="Pedicure"><h3 class="service-card-title">Gel toes</h3><div class="service-list-price"><span class="amount">From Ksh 400</span></div></div>
+        </div>
+
+        <div class="gallery-controls">
+          <div class="gallery-search-wrap">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input type="text" id="gallery-search" class="gallery-search-input" placeholder="Search by finish, shape or tag" aria-label="Search portfolio">
+          </div>
+        </div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+    </section>
+
+    <section class="page-section alt">
+      <div class="shell section-heading-row">
+        <div data-reveal><div class="eyebrow">NOT SURE WHAT TO ASK FOR?</div></div>
+        <div data-reveal style="--delay:90ms">
+          <h2 class="display">Start with what catches your eye.</h2>
+          <p class="lede">The reference library is for direction, not duplication. Save a finish, shape or mood and use it to start the conversation.</p>
+          <a class="text-link" href="references.html">Open references <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="shell closing-grid">
+        <div data-reveal><div class="eyebrow">FOUND YOUR DIRECTION?</div><h2 class="display">Send the look.</h2><p>A screenshot, a set name or even a rough idea is enough to start.</p></div>
+        <a class="button" data-reveal style="--delay:100ms" href="https://wa.me/254741959888?text=Hi%20Denis%20%E2%80%94%20I%20found%20a%20look%20on%20the%20Aura%20site%20and%20I%27d%20like%20to%20book%20something%20in%20that%20direction." target="_blank" rel="noopener">Message Denis <span class="arrow">↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a class="brand" href="index.html"><strong>AURA</strong><span>Nail studio · Embu</span></a>
+      <div class="footer-links"><a href="work.html">Work</a><a href="references.html">References</a><a href="index.html#standard">The standard</a></div>
+      <div class="footer-meta">Nail artistry by Denis Mwaura<br>Embu, Kenya · 2026</div>
+    </div>
+  </footer>
+
+  <dialog id="work-lightbox" class="v2-lightbox">
+    <button class="v2-lightbox-close" type="button" aria-label="Close">×</button>
+    <div class="v2-lightbox-media"><img src="" alt=""></div>
+    <div class="v2-lightbox-copy"><div class="eyebrow">AURA / WORK</div><h2></h2><p></p><a class="button" href="#" target="_blank" rel="noopener">Book this direction <span class="arrow">↗</span></a></div>
+  </dialog>
+
+  <script src="env-config.js"></script>
+  <script src="firebase-service.js"></script>
+  <script src="app.js"></script>
+  <script src="site-motion.js?v=20260907b"></script>
+</body>
+</html>
