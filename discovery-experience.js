@@ -25,6 +25,11 @@
   function rememberContext(ctx){if(ctx?.type&&ctx?.title&&ctx?.href)write(CONTEXT_KEY,{...ctx,ts:Date.now()})}
   function recentContext(){const c=read(CONTEXT_KEY,null);return c?.ts&&Date.now()-Number(c.ts)<=MAX_CONTEXT_AGE?c:null}
   function ensureStyles(doc){if(doc.querySelector('link[data-discovery-css]'))return;const l=doc.createElement('link');l.rel='stylesheet';l.href='discovery-experience.css?v=20260907a';l.dataset.discoveryCss='1';doc.head.appendChild(l)}
+  function ensureData(doc){
+    if(root.LuneData){root.LuneData.attachTaste?.();return}
+    if(doc.querySelector('script[data-lune-data]'))return;
+    const s=doc.createElement('script');s.src='lune-data.js?v=20260907a';s.async=false;s.dataset.luneData='1';s.onload=()=>root.LuneData?.attachTaste?.();doc.body.appendChild(s)
+  }
   function pulse(node){if(!node)return;node.classList.add('is-context-target');setTimeout(()=>node.classList.remove('is-context-target'),2200)}
 
   function fromWork(card){if(!card?.dataset.id)return null;const id=card.dataset.id;return{type:'work',id,title:card.querySelector('.card-title')?.textContent?.trim()||'Saved set',style:card.querySelector('.card-style-sub')?.textContent?.trim()||'',image:card.querySelector('.card-image-wrap img')?.getAttribute('src')||'',href:workUrl(id)}}
@@ -67,6 +72,6 @@
   function saved(doc){const empty=doc.getElementById('saved-empty');if(!empty)return;setTimeout(()=>{if(doc.querySelector('#saved-work-grid > *, #saved-inspo-grid > *'))return;empty.hidden=false;if(!empty.textContent.trim())empty.innerHTML='<strong>Your shortlist starts with one save.</strong><span>Start with inspo when you want a direction, or Work when you already know the finish.</span>';if(!empty.querySelector('.saved-empty-actions')){const a=doc.createElement('div');a.className='saved-empty-actions';a.innerHTML='<a class="quiet-action" href="inspo.html">See inspo</a><a class="quiet-action" href="work.html">See work</a>';empty.appendChild(a)}},700)}
   function standard(doc){const c=recentContext(),band=doc.querySelector('.page-link-band .shell');if(!c||!band||doc.querySelector('[data-context-return]'))return;const a=doc.createElement('a');a.className='quiet-action context-return';a.dataset.contextReturn='1';a.href=c.href;a.textContent=`Back to ${c.title} →`;band.appendChild(a)}
 
-  function boot(){const doc=root.document;if(!doc)return;const start=()=>{const p=page(doc);if(p==='unknown')return;ensureStyles(doc);rememberTrail(p,`${root.location.pathname}${root.location.search}`);if(p==='home')home(doc);if(p==='work')work(doc);if(p==='inspo')inspo(doc);if(p==='saved')saved(doc);if(p==='standard')standard(doc)};if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',start,{once:true});else start()}
+  function boot(){const doc=root.document;if(!doc)return;const start=()=>{ensureData(doc);const p=page(doc);if(p==='unknown')return;ensureStyles(doc);rememberTrail(p,`${root.location.pathname}${root.location.search}`);if(p==='home')home(doc);if(p==='work')work(doc);if(p==='inspo')inspo(doc);if(p==='saved')saved(doc);if(p==='standard')standard(doc)};if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',start,{once:true});else start()}
   return{boot,normalize,meaningfulTokens,overlapScore,strongestSeed,workUrl,inspoUrl,recentContext};
 });
