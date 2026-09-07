@@ -99,10 +99,11 @@ async function createSession(res, userId) {
 }
 
 async function mergeVisitorIntoUser(visitorDbId, userId) {
-  await pool.query('BEGIN');
+  const client = await pool.connect();
   try {
-    await pool.query('UPDATE lune_visitors SET user_id=$2,last_seen_at=now() WHERE id=$1', [visitorDbId, userId]);
-    await pool.query(`
+    await client.query('BEGIN');
+    await client.query('UPDATE lune_visitors SET user_id=$2,last_seen_at=now() WHERE id=$1', [visitorDbId, userId]);
+    await client.query(`
       INSERT INTO lune_saved_items (owner_kind,owner_id,item_kind,item_id,is_saved,item_snapshot,created_at,updated_at)
       SELECT 'user',$2,item_kind,item_id,is_saved,item_snapshot,created_at,updated_at
       FROM lune_saved_items WHERE owner_kind='visitor' AND owner_id=$1
@@ -111,12 +112,14 @@ async function mergeVisitorIntoUser(visitorDbId, userId) {
         item_snapshot=EXCLUDED.item_snapshot,
         updated_at=EXCLUDED.updated_at
       WHERE EXCLUDED.updated_at > lune_saved_items.updated_at`, [visitorDbId, userId]);
-    await pool.query('UPDATE lune_taste_events SET user_id=$2 WHERE visitor_id=$1 AND user_id IS NULL', [visitorDbId, userId]);
-    await pool.query('UPDATE lune_recommendation_impressions SET user_id=$2 WHERE visitor_id=$1 AND user_id IS NULL', [visitorDbId, userId]);
-    await pool.query('COMMIT');
+    await client.query('UPDATE lune_taste_events SET user_id=$2 WHERE visitor_id=$1 AND user_id IS NULL', [visitorDbId, userId]);
+    await client.query('UPDATE lune_recommendation_impressions SET user_id=$2 WHERE visitor_id=$1 AND user_id IS NULL', [visitorDbId, userId]);
+    await client.query('COMMIT');
   } catch (err) {
-    await pool.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {});
     throw err;
+  } finally {
+    client.release();
   }
 }
 
