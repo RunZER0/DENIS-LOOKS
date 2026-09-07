@@ -1,0 +1,9 @@
+.lune-work-page .card-image-wrap > img[role='button']:focus-visible,
+.lune-inspo-page .inspo-img-wrap > img[role='button']:focus-visible {
+  outline: 0 !important;
+  box-shadow: inset 0 0 0 3px var(--lune-accent, #7b3047) !important;
+}
+
+.lune-work-page .service-list-item[role='button']:focus-visible {
+  outline-offset: -3px !important;
+}
