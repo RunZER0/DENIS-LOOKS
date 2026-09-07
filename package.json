@@ -1,13 +1,13 @@
 {
-  "name": "aura-nails-hub",
+  "name": "lune-nails",
   "version": "1.0.0",
-  "description": "Aura Nails Hub — Luxury Nail Artistry & House Calls in Embu",
+  "description": "Lune — a connected nail discovery and experience platform for Nairobi",
   "scripts": {
     "build": "node build-env.js",
     "dev": "npx serve . -p 3000 --no-clipboard",
     "start": "npx serve . -p 3000 --no-clipboard"
   },
-  "keywords": ["nails", "embu", "aura", "luxury"],
-  "author": "Denis Mwaura",
+  "keywords": ["nails", "nairobi", "lune", "beauty", "inspo"],
+  "author": "Lune",
   "license": "UNLICENSED"
 }
