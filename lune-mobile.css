@@ -3,6 +3,9 @@
   align-items: center;
 }
 .brand > span:last-child { margin-top: 0; }
+.work-shot,
+.reference-shot,
+.hero-media { margin: 0; }
 .site-nav,
 .site-nav > *,
 .shell,
@@ -46,6 +49,11 @@
   .section-heading-row,
   .closing-grid {
     width: 100%;
+  }
+
+  .work-preview > *,
+  .reference-stage > * {
+    min-width: 0;
   }
 
   .home-hero .display,
