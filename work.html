@@ -9,17 +9,9 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="site-v2.css?v=20260907c">
   <link rel="stylesheet" href="experience-v3.css?v=20260907c">
-  <link rel="stylesheet" href="lune-foundation.css?v=20260907a">
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-    window.firebaseApp = { initializeApp };
-    window.firebaseFirestore = { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc };
-    window.firebaseStorage = { getStorage, ref, uploadString, getDownloadURL };
-  </script>
+  <link rel="stylesheet" href="lune-foundation.css?v=20260907b">
 </head>
-<body class="lune-work-page aura-work-page">
+<body class="lune-work-page">
   <header class="site-header">
     <nav class="site-nav" aria-label="Main navigation">
       <a class="brand" href="index.html"><span class="lune-mark" aria-hidden="true"></span><strong>LUNE</strong><span>Nail experiences · Nairobi</span></a>
@@ -119,13 +111,9 @@
     <div class="v2-lightbox-copy"><div class="eyebrow">LUNE / WORK</div><h2></h2><p></p><a class="button" href="favorites.html">Open saved <span class="arrow">→</span></a></div>
   </dialog>
 
-  <script src="env-config.js"></script>
-  <script src="firebase-service.js"></script>
-  <script src="app.js"></script>
-  <script src="lune-app-bridge.js?v=20260907a"></script>
-  <script src="site-motion.js?v=20260907c"></script>
-  <script src="experience-v4.js?v=20260907d"></script>
-  <script src="work-experience-fix.js?v=20260907c"></script>
-  <script src="lune-shell.js?v=20260907a"></script>
+  <script src="lune-shell.js?v=20260907b"></script>
+  <script src="lune-catalog.js?v=20260907a"></script>
+  <script src="lune-experience.js?v=20260907a"></script>
+  <script src="site-motion.js?v=20260907d"></script>
 </body>
 </html>
