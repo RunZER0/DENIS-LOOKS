@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Lune</title>
+  <meta name="description" content="Keep your Lune saves, taste and bookings together across devices.">
+  <meta name="theme-color" content="#f4eee6">
+  <link rel="stylesheet" href="site-v2.css?v=20260907c">
+  <link rel="stylesheet" href="experience-v3.css?v=20260907c">
+  <link rel="stylesheet" href="account.css?v=20260907a">
+</head>
+<body class="lune-account-page">
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="index.html"><strong>LUNE</strong><span>Nails, kept personal.</span></a>
+      <div class="nav-links">
+        <a href="work.html">Work</a>
+        <a href="inspo.html">Inspo</a>
+        <a href="favorites.html">Saved <span class="saved-count" data-saved-count></span></a>
+        <a href="standard.html">The standard</a>
+        <a href="account.html" aria-current="page" data-lune-account-link>Account</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="account-shell shell">
+    <section class="account-intro">
+      <div class="eyebrow">YOUR LUNE</div>
+      <h1 class="display">Keep your taste<br>within reach.</h1>
+      <p class="lede">Saves, directions and bookings can follow you from one device to the next.</p>
+    </section>
+
+    <section class="account-panel" data-account-guest>
+      <div class="account-tabs" role="tablist" aria-label="Account options">
+        <button type="button" class="account-tab is-active" data-account-tab="login">Sign in</button>
+        <button type="button" class="account-tab" data-account-tab="register">Create account</button>
+      </div>
+
+      <form class="account-form" data-login-form>
+        <label>Email<input type="email" name="email" autocomplete="email" required></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" minlength="8" required></label>
+        <button class="button" type="submit">Keep going <span class="arrow">→</span></button>
+        <p class="account-status" data-login-status aria-live="polite"></p>
+      </form>
+
+      <form class="account-form" data-register-form hidden>
+        <label>Name<input type="text" name="displayName" autocomplete="name" maxlength="120"></label>
+        <label>Phone<input type="tel" name="phone" autocomplete="tel" maxlength="40"></label>
+        <label>Email<input type="email" name="email" autocomplete="email" required></label>
+        <label>Password<input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+        <button class="button" type="submit">Keep my Lune <span class="arrow">→</span></button>
+        <p class="account-status" data-register-status aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="account-panel" data-account-member hidden>
+      <div class="account-member-head">
+        <div><div class="eyebrow">WELCOME BACK</div><h2 class="display" data-account-name>Your Lune</h2><p data-account-email></p></div>
+        <button class="quiet-action" type="button" data-logout>Sign out</button>
+      </div>
+
+      <form class="account-form account-profile-form" data-profile-form>
+        <label>Name<input type="text" name="displayName" autocomplete="name" maxlength="120"></label>
+        <label>Phone<input type="tel" name="phone" autocomplete="tel" maxlength="40"></label>
+        <button class="quiet-action" type="submit">Save details</button>
+        <p class="account-status" data-profile-status aria-live="polite"></p>
+      </form>
+
+      <div class="account-continuation-grid">
+        <a class="account-continuation" href="favorites.html"><span>SAVED</span><strong>Your shortlist</strong><em>Keep choosing from what stayed with you.</em></a>
+        <a class="account-continuation" href="inspo.html"><span>INSPO</span><strong>Find the next direction</strong><em>Something familiar, something new.</em></a>
+      </div>
+
+      <div class="account-orders">
+        <div class="eyebrow">BOOKINGS</div>
+        <div data-account-orders><p class="account-muted">No bookings yet.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="site-motion.js?v=20260907c"></script>
+  <script src="account.js?v=20260907a"></script>
+</body>
+</html>
