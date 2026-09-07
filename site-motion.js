@@ -3,6 +3,13 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   html.classList.add('motion-ready');
 
+  if (document.querySelector('.v2-lightbox')) {
+    const dialogStyles = document.createElement('link');
+    dialogStyles.rel = 'stylesheet';
+    dialogStyles.href = 'dialogs-v2.css?v=20260907b';
+    document.head.appendChild(dialogStyles);
+  }
+
   const transition = document.createElement('div');
   transition.className = 'page-transition';
   transition.setAttribute('aria-hidden', 'true');
@@ -25,22 +32,6 @@
   updateHeader();
   window.addEventListener('scroll', updateHeader, { passive: true });
 
-  function observeReveal(root = document) {
-    const nodes = [...root.querySelectorAll('[data-reveal], .aura-work-page .gallery-card:not([data-motion]), .aura-reference-page .inspo-card:not([data-motion])')];
-    if (!nodes.length) return;
-
-    nodes.forEach((el, index) => {
-      if (el.dataset.motion === '1') return;
-      el.dataset.motion = '1';
-      el.style.setProperty('--delay', `${Math.min(index % 6, 5) * 55}ms`);
-      if (reduced) {
-        el.classList.add('is-visible');
-        return;
-      }
-      revealObserver.observe(el);
-    });
-  }
-
   const revealObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
@@ -49,16 +40,16 @@
     });
   }, { threshold: .12, rootMargin: '0px 0px -7% 0px' });
 
-  observeReveal();
-
-  const mutation = new MutationObserver(mutations => {
-    let changed = false;
-    mutations.forEach(m => { if (m.addedNodes.length) changed = true; });
-    if (!changed) return;
-    polishDynamicWork();
-    observeReveal();
-  });
-  mutation.observe(document.body, { childList: true, subtree: true });
+  function observeReveal(root = document) {
+    const nodes = [...root.querySelectorAll('[data-reveal], .aura-work-page .gallery-card:not([data-motion]), .aura-reference-page .inspo-card:not([data-motion])')];
+    nodes.forEach((el, index) => {
+      if (el.dataset.motion === '1') return;
+      el.dataset.motion = '1';
+      if (!el.style.getPropertyValue('--delay')) el.style.setProperty('--delay', `${Math.min(index % 6, 5) * 55}ms`);
+      if (reduced) el.classList.add('is-visible');
+      else revealObserver.observe(el);
+    });
+  }
 
   function polishDynamicWork() {
     document.querySelectorAll('.aura-work-page .gallery-card').forEach(card => {
@@ -71,6 +62,7 @@
         button.innerHTML = 'Book this look <span aria-hidden="true">↗</span>';
         button.onclick = e => {
           e.preventDefault();
+          e.stopPropagation();
           window.open(wa.href, '_blank', 'noopener');
         };
       }
@@ -80,7 +72,16 @@
       });
     });
   }
+
+  observeReveal();
   polishDynamicWork();
+
+  const mutation = new MutationObserver(mutations => {
+    if (!mutations.some(m => m.addedNodes.length)) return;
+    polishDynamicWork();
+    observeReveal();
+  });
+  mutation.observe(document.body, { childList: true, subtree: true });
 
   function updateObsession() {
     const title = document.getElementById('obsession-title');
@@ -98,6 +99,69 @@
     if (img.complete) img.classList.add('is-loaded-media');
     else img.addEventListener('load', () => img.classList.add('is-loaded-media'), { once: true });
   });
+
+  function openWorkLightbox(card) {
+    const dialog = document.getElementById('work-lightbox');
+    if (!dialog || !card) return;
+    const source = card.querySelector('.card-image-wrap img');
+    const title = card.querySelector('.card-title')?.textContent?.trim() || 'Aura set';
+    const style = card.querySelector('.card-style-sub')?.textContent?.trim() || 'Nail artistry by Denis';
+    const wa = card.querySelector('.card-footer-btns a[href*="wa.me"]')?.href || 'https://wa.me/254741959888';
+    const image = dialog.querySelector('.v2-lightbox-media img');
+    if (image && source) { image.src = source.src; image.alt = source.alt || title; }
+    const heading = dialog.querySelector('.v2-lightbox-copy h2');
+    const paragraph = dialog.querySelector('.v2-lightbox-copy p');
+    const action = dialog.querySelector('.v2-lightbox-copy .button');
+    if (heading) heading.textContent = title;
+    if (paragraph) paragraph.textContent = style;
+    if (action) action.href = wa;
+    dialog.showModal();
+  }
+
+  function openReferenceLightbox(card) {
+    const dialog = document.getElementById('reference-lightbox');
+    if (!dialog || !card) return;
+    const source = card.querySelector('.inspo-img-wrap img');
+    const category = card.querySelector('.inspo-category')?.textContent?.trim() || 'Reference';
+    const style = card.querySelector('.inspo-style')?.textContent?.trim() || 'Nail direction';
+    const image = dialog.querySelector('.v2-lightbox-media img');
+    if (image && source) { image.src = source.src; image.alt = source.alt || style; }
+    const heading = dialog.querySelector('.v2-lightbox-copy h2');
+    const action = dialog.querySelector('.v2-lightbox-copy .button');
+    if (heading) heading.textContent = style;
+    if (action) {
+      const msg = encodeURIComponent(`Hi Denis — I found the reference “${style}” (${category}) on the Aura site and I'd like to use it as a starting point.`);
+      action.href = `https://wa.me/254741959888?text=${msg}`;
+    }
+    dialog.showModal();
+  }
+
+  document.querySelectorAll('.v2-lightbox').forEach(dialog => {
+    dialog.querySelector('.v2-lightbox-close')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', e => {
+      const rect = dialog.getBoundingClientRect();
+      const outside = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom;
+      if (outside) dialog.close();
+    });
+  });
+
+  document.addEventListener('click', e => {
+    const workImage = e.target.closest('.aura-work-page .card-image-wrap');
+    if (workImage) {
+      e.preventDefault();
+      e.stopPropagation();
+      openWorkLightbox(workImage.closest('.gallery-card'));
+      return;
+    }
+
+    const refCard = e.target.closest('.aura-reference-page .inspo-card');
+    if (refCard) {
+      e.preventDefault();
+      e.stopPropagation();
+      openReferenceLightbox(refCard);
+      return;
+    }
+  }, true);
 
   if (!reduced && window.matchMedia('(pointer:fine)').matches) {
     let ticking = false;
@@ -132,7 +196,6 @@
     const url = new URL(link.href, window.location.href);
     if (url.origin !== location.origin) return;
     if (url.pathname === location.pathname && url.hash) return;
-
     if (document.startViewTransition) return;
 
     e.preventDefault();
