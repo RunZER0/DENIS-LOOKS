@@ -1,228 +1,295 @@
 /**
- * Aura Nails Hub - Visual Effects & Interactions Engine
- * Provides Custom Glowing Aura Cursor, 3D Card Physics & Tilt,
- * Dynamic Parallax Scroll Engine, and Reveal Animations.
+ * Aura Nails Hub — editorial redesign layer.
+ * Keeps the booking, gallery, payment and admin engines intact while changing
+ * the public-facing hierarchy, copy and interaction language.
  */
+(function () {
+  const WHATSAPP = 'https://wa.me/254741959888?text=' + encodeURIComponent("Hi Denis — I'd like to book a nail appointment with Aura Nails Hub. What's available?");
 
-document.addEventListener('DOMContentLoaded', () => {
-    initCustomCursor();
-    init3DTiltEffects();
-    initParallaxEngine();
-    initScrollReveal();
-    initInteractiveSpotlights();
-});
+  const stylesheet = document.createElement('link');
+  stylesheet.rel = 'stylesheet';
+  stylesheet.href = 'redesign.css?v=20260907';
+  document.head.appendChild(stylesheet);
 
-/* ==========================================================================
-   1. CUSTOM GLOWING AURA CURSOR
-   ========================================================================== */
-function initCustomCursor() {
-    // Only enable on desktop with fine pointers
-    if (window.matchMedia('(pointer: coarse)').matches) return;
+  document.documentElement.classList.remove('dark-mode');
+  document.documentElement.classList.add('aura-editorial');
+  document.title = 'Aura Nails Hub | Nail Artistry in Embu';
+  const description = document.querySelector('meta[name="description"]');
+  if (description) description.content = 'Clean prep, strong structure and nail art made to feel like you. Studio appointments and house calls in Embu.';
+  const theme = document.querySelector('meta[name="theme-color"]');
+  if (theme) theme.content = '#f5efe7';
 
-    const cursorDot = document.createElement('div');
-    cursorDot.className = 'aura-cursor-dot';
+  const q = (selector, root = document) => root.querySelector(selector);
+  const qa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const setText = (selector, text, root = document) => { const el = q(selector, root); if (el) el.textContent = text; };
+  const setHTML = (selector, html, root = document) => { const el = q(selector, root); if (el) el.innerHTML = html; };
 
-    const cursorAura = document.createElement('div');
-    cursorAura.className = 'aura-cursor-glow';
-
-    document.body.appendChild(cursorDot);
-    document.body.appendChild(cursorAura);
-
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let auraX = mouseX;
-    let auraY = mouseY;
-
-    window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+  function rewriteBranding() {
+    qa('.brand-logo').forEach(brand => {
+      brand.innerHTML = `
+        <div class="brand-text">
+          <span class="brand-name">AURA</span>
+          <span class="brand-sub">Nail studio · Embu</span>
+        </div>`;
     });
 
-    // Smooth animation loop for aura trailing effect
-    function renderCursor() {
-        auraX += (mouseX - auraX) * 0.15;
-        auraY += (mouseY - auraY) * 0.15;
-
-        cursorAura.style.transform = `translate3d(${auraX}px, ${auraY}px, 0)`;
-        requestAnimationFrame(renderCursor);
-    }
-    requestAnimationFrame(renderCursor);
-
-    // Interactive element hover states
-    const interactiveSelectors = 'a, button, input, select, textarea, .gallery-card, .tilt-card, .btn, .tag-pill, .filter-btn, .action-btn';
-    
-    document.addEventListener('mouseover', (e) => {
-        if (e.target.closest(interactiveSelectors)) {
-            cursorDot.classList.add('cursor-hover');
-            cursorAura.classList.add('aura-hover');
-        }
+    const navLinks = qa('.nav-menu .nav-link');
+    const nav = [
+      ['Work', '#services-portfolio'],
+      ['Build a set', '#calculator'],
+      ['References', '#inspo'],
+      ['The standard', '#standards']
+    ];
+    navLinks.forEach((link, i) => {
+      if (!nav[i]) return;
+      link.textContent = nav[i][0];
+      link.setAttribute('href', nav[i][1]);
     });
 
-    document.addEventListener('mouseout', (e) => {
-        if (e.target.closest(interactiveSelectors)) {
-            cursorDot.classList.remove('cursor-hover');
-            cursorAura.classList.remove('aura-hover');
-        }
-    });
-
-    document.addEventListener('mousedown', () => {
-        cursorDot.classList.add('cursor-click');
-        cursorAura.classList.add('aura-click');
-    });
-
-    document.addEventListener('mouseup', () => {
-        cursorDot.classList.remove('cursor-click');
-        cursorAura.classList.remove('aura-click');
-    });
-}
-
-/* ==========================================================================
-   2. 3D TILT & SPECULAR HIGHLIGHT EFFECTS
-   ========================================================================== */
-function init3DTiltEffects() {
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-
-    function applyTilt(el) {
-        if (el._tiltInitialized) return;
-        el._tiltInitialized = true;
-
-        el.addEventListener('mousemove', (e) => {
-            const rect = el.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-
-            const rotateX = ((y - centerY) / centerY) * -9; // Max 9 deg rotation
-            const rotateY = ((x - centerX) / centerX) * 9;
-
-            el.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
-
-            // Update specular lighting flare position
-            el.style.setProperty('--mouse-x', `${x}px`);
-            el.style.setProperty('--mouse-y', `${y}px`);
-        });
-
-        el.addEventListener('mouseleave', () => {
-            el.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-        });
+    const book = q('.btn-book-nav');
+    if (book) {
+      book.href = WHATSAPP;
+      book.innerHTML = 'Book a set <span aria-hidden="true">↗</span>';
     }
 
-    // Attach to existing & dynamically created tilt cards
-    document.querySelectorAll('.tilt-card, .gallery-card, .inspo-card, .standard-card, .rate-card').forEach(applyTilt);
+    const upload = q('.btn-upload-nav');
+    const footerBottom = q('.footer-bottom');
+    if (upload && footerBottom) {
+      upload.classList.add('studio-admin-link');
+      upload.innerHTML = 'Studio admin';
+      footerBottom.appendChild(upload);
+    }
+  }
 
-    // Observer for dynamically added cards (like newly uploaded sets)
-    const mutationObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    if (node.matches && (node.matches('.tilt-card') || node.matches('.gallery-card'))) {
-                        applyTilt(node);
-                    }
-                    if (node.querySelectorAll) {
-                        node.querySelectorAll('.tilt-card, .gallery-card').forEach(applyTilt);
-                    }
-                }
-            });
-        });
+  function rewriteHero() {
+    setHTML('.status-badge', 'NAIL ARTISTRY · EMBU');
+    setHTML('.hero-title', 'Your set should<br><em>say something.</em>');
+    setHTML('.hero-description', 'Clean prep, strong structure and art that feels like <strong>you</strong> — in studio or wherever you are in Embu.');
+
+    const primary = q('.hero-cta-group .btn-primary');
+    if (primary) {
+      primary.href = WHATSAPP;
+      primary.innerHTML = 'Book your set <span aria-hidden="true">↗</span>';
+    }
+    const secondary = q('.hero-cta-group .btn-secondary:not(#hero-upload-btn)');
+    if (secondary) {
+      secondary.href = '#services-portfolio';
+      secondary.innerHTML = 'See the work <span aria-hidden="true">↓</span>';
+    }
+
+    const stats = qa('.hero-stats .stat-item');
+    const copy = [
+      ['HOUSE CALLS + STUDIO', 'Choose the setting that works for you'],
+      ['RESERVE / 30%', 'Secure the appointment, settle the rest after'],
+      ['CUSTOM BY DEFAULT', 'Bring a reference or start from scratch']
+    ];
+    stats.forEach((item, i) => {
+      if (!copy[i]) return;
+      setText('.stat-number', copy[i][0], item);
+      setText('.stat-label', copy[i][1], item);
     });
 
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
-}
+    setText('.hero-visual-badge', 'AURA SIGNATURE');
+    setText('.hero-visual-title', 'Chrome, structure, detail.');
+  }
 
-/* ==========================================================================
-   3. DYNAMIC PARALLAX ENGINE
-   ========================================================================== */
-function initParallaxEngine() {
-    let ticking = false;
+  function rewriteWeeklyFeature() {
+    setText('.notw-badge', 'CURRENT OBSESSION');
+    const cta = q('.notw-cta');
+    if (cta) cta.textContent = 'See the set →';
+  }
 
+  function rewritePortfolio() {
+    const section = q('#services-portfolio');
+    if (!section) return;
+    setText('.section-tag', 'THE WORK', section);
+    setText('.section-title', 'Find the set that feels like you.', section);
+    setText('.section-subtitle', 'Natural, structured, chrome or sculpted. Start with a service, then use the work below to decide how far you want to take it.', section);
+
+    const serviceCopy = {
+      all: ['All work', 'Every finish, shape and structure'],
+      'Gel Polish': ['Gel on natural nails', 'Clean prep · colour · gloss'],
+      'Tips + Gel': ['Tips + gel', 'Length, shape and a clean finish'],
+      Gumgel: ['Gumgel structure', 'Reinforcement without losing the shape'],
+      '3d': ['3D + chrome', 'Texture, metal, detail and statement'],
+      Pedicure: ['Gel toes', 'Prep, polish and a lasting finish']
+    };
+
+    qa('.service-list-item[data-category]', section).forEach(item => {
+      const key = item.dataset.category;
+      const pair = serviceCopy[key];
+      if (!pair) return;
+      setText('.service-card-title', pair[0], item);
+      const features = q('.service-features', item);
+      if (features) features.innerHTML = `<li>${pair[1]}</li>`;
+      const loose = qa('p', item).find(p => !p.closest('.service-list-body'));
+      if (loose) loose.textContent = pair[1];
+    });
+
+    const search = q('#gallery-search');
+    if (search) search.placeholder = 'Search by finish, shape or tag';
+  }
+
+  function rewriteCalculator() {
+    const section = q('#calculator');
+    if (!section) return;
+    setText('.section-tag', 'BUILD YOUR SET', section);
+    setText('.section-title', 'Know the price before you book.', section);
+    setText('.section-subtitle', 'Choose the base, length and finish. The estimate updates as you build, so there is no awkward price surprise at the end.', section);
+
+    const titles = qa('.calc-group-title', section);
+    const labels = ['01 · Choose the base', '02 · Add length if you want it', '03 · Decide the finish', 'Your estimate'];
+    titles.forEach((el, i) => { if (labels[i]) el.textContent = labels[i]; });
+  }
+
+  function rewriteReviews() {
+    const section = q('#reviews');
+    if (!section) return;
+    setText('.section-tag', 'CLIENT NOTES', section);
+    setText('.section-title', 'They notice the details.', section);
+    setText('.section-subtitle', 'Clean prep, wear, shape and the convenience of having the appointment come to you — the small things are usually what get mentioned.', section);
+  }
+
+  function rewriteInspo() {
+    const section = q('#inspo');
+    if (!section) return;
+    setText('.section-tag', 'BRING A REFERENCE', section);
+    setText('.section-title', 'Bring the idea. Leave with your version.', section);
+    setText('.section-subtitle', 'A reference is a starting point, not a copy-and-paste instruction. Save what you like and Denis can adapt the shape, colour and detail to you.', section);
+    const hint = q('.inspo-scroll-hint', section);
+    if (hint) hint.innerHTML = 'Drag sideways to keep looking <span aria-hidden="true">→</span>';
+  }
+
+  function rewriteStandards() {
+    const section = q('#standards');
+    if (!section) return;
+    setText('.section-tag', 'BEFORE THE COLOUR', section);
+    setText('.section-title', 'Good nails start before the colour.', section);
+    setText('.section-subtitle', 'The finish is what you photograph. Prep, structure, hygiene and time are what make the appointment worth repeating.', section);
+
+    const cards = qa('.standard-card', section);
+    const content = [
+      ['Your space or ours.', 'Book a house call around Embu when convenience matters, or choose a studio appointment when you prefer the full setup.'],
+      ['Clean tools. Every appointment.', 'Reusable tools are disinfected between clients and single-use files stay single-use. Clean work starts before polish touches the nail.'],
+      ['Structure before shine.', 'Prep, primer and apex work are chosen around the service so length and finish have a proper foundation.'],
+      ['Art, not a template.', 'Bring a reference, a colour or just a mood. The point is to translate it into a set that still looks like yours.']
+    ];
+    cards.forEach((card, i) => {
+      if (!content[i]) return;
+      const h3 = q('h3', card); const p = q('p', card);
+      if (h3) h3.textContent = content[i][0];
+      if (p) p.textContent = content[i][1];
+    });
+  }
+
+  function rewriteFooter() {
+    const footer = q('.site-footer');
+    if (!footer) return;
+    const brandPara = q('.footer-brand-col > p');
+    if (brandPara) brandPara.textContent = 'Clean prep, strong structure and expressive nail art in Embu — in studio or by house call.';
+    const h4s = qa('h4', footer);
+    if (h4s[0]) h4s[0].textContent = 'Where we work';
+    if (h4s[1]) h4s[1].textContent = 'Appointment hours';
+    const bottomPs = qa('.footer-bottom p');
+    if (bottomPs[0]) bottomPs[0].textContent = '© 2026 Aura Nails Hub. Embu, Kenya.';
+    if (bottomPs[1]) bottomPs[1].textContent = 'Nail artistry by Denis Mwaura';
+  }
+
+  function insertClosingCTA() {
+    if (q('.aura-closing')) return;
+    const footer = q('.site-footer');
+    if (!footer) return;
+    const closing = document.createElement('section');
+    closing.className = 'aura-closing';
+    closing.innerHTML = `
+      <div class="aura-closing-inner">
+        <div class="aura-closing-kicker">YOUR NEXT SET</div>
+        <h2>Start with a message.</h2>
+        <p>Tell us the date, where you are in Embu and the kind of set you have in mind. A reference photo helps, but it is not required.</p>
+        <a class="btn-primary" href="${WHATSAPP}" target="_blank" rel="noopener">Book on WhatsApp <span aria-hidden="true">↗</span></a>
+      </div>`;
+    footer.parentNode.insertBefore(closing, footer);
+  }
+
+  function reorderSections() {
+    const main = q('main');
+    if (!main) return;
+    const portfolio = q('#services-portfolio');
+    const calculator = q('#calculator');
+    const inspo = q('#inspo');
+    const standards = q('#standards');
+    const reviews = q('#reviews');
+    [portfolio, calculator, inspo, standards, reviews].forEach(section => {
+      if (section) main.appendChild(section);
+    });
+  }
+
+  function cleanGimmicks() {
+    qa('.tilt-card').forEach(el => { el.style.transform = ''; });
+    const heroBg = q('.parallax-bg');
+    if (heroBg) heroBg.setAttribute('aria-hidden', 'true');
+  }
+
+  function polishDynamicGallery(root = document) {
+    qa('.gallery-card', root).forEach(card => {
+      if (card.dataset.editorialPolished === 'true') return;
+      card.dataset.editorialPolished = 'true';
+
+      const deposit = qa('.card-content > div', card).find(el => /30% Deposit/i.test(el.textContent));
+      if (deposit) deposit.textContent = deposit.textContent.replace('30% Deposit:', 'Reserve with');
+
+      const book = q('.btn-book-look', card);
+      if (book) {
+        const match = book.textContent.match(/Ksh\s*[\d,]+/i);
+        book.innerHTML = `${match ? `Reserve · ${match[0]}` : 'Reserve this set'} <span aria-hidden="true">→</span>`;
+      }
+    });
+  }
+
+  rewriteBranding();
+  rewriteHero();
+  rewriteWeeklyFeature();
+  rewritePortfolio();
+  rewriteCalculator();
+  rewriteReviews();
+  rewriteInspo();
+  rewriteStandards();
+  reorderSections();
+  insertClosingCTA();
+  rewriteFooter();
+  cleanGimmicks();
+
+  const observer = new MutationObserver(mutations => {
+    let needsPolish = false;
+    for (const mutation of mutations) {
+      if (mutation.addedNodes.length) { needsPolish = true; break; }
+    }
+    if (needsPolish) polishDynamicGallery();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    polishDynamicGallery();
+    initEditorialMotion();
+  });
+
+  function initEditorialMotion() {
+    const reveal = qa('.section-header, .service-list-item, .calculator-card, .standard-card, .aura-closing-inner');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: .12, rootMargin: '0px 0px -36px 0px' });
+    reveal.forEach(el => { el.classList.add('reveal-on-scroll'); io.observe(el); });
+
+    const header = q('.site-header');
     window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                const scrolled = window.pageYOffset;
-
-                // Parallax on decorative aura glowing orbs
-                const auraOrbs = document.querySelectorAll('[data-parallax-speed]');
-                auraOrbs.forEach((orb) => {
-                    const speed = parseFloat(orb.dataset.parallaxSpeed) || 0.2;
-                    const yPos = -(scrolled * speed);
-                    orb.style.transform = `translate3d(0, ${yPos}px, 0)`;
-                });
-
-                // Parallax on floating hero badges
-                const floatingBadges = document.querySelectorAll('.hero-floating-badge');
-                floatingBadges.forEach((badge, index) => {
-                    const factor = (index + 1) * 0.08;
-                    badge.style.transform = `translate3d(0, ${scrolled * factor}px, 0)`;
-                });
-
-                // Parallax on hero showcase mockup
-                const heroVisual = document.querySelector('.hero-visual-card');
-                if (heroVisual) {
-                    heroVisual.style.transform = `translate3d(0, ${scrolled * 0.12}px, 0)`;
-                }
-
-                // Sticky navbar backdrop blur transition
-                const header = document.querySelector('.site-header');
-                if (header) {
-                    if (scrolled > 50) {
-                        header.classList.add('header-scrolled');
-                    } else {
-                        header.classList.remove('header-scrolled');
-                    }
-                }
-
-                ticking = false;
-            });
-            ticking = true;
-        }
+      if (header) header.classList.toggle('header-scrolled', window.scrollY > 24);
     }, { passive: true });
-}
+  }
 
-/* ==========================================================================
-   4. SCROLL REVEAL (INTERSECTION OBSERVER)
-   ========================================================================== */
-function initScrollReveal() {
-    const revealElements = document.querySelectorAll('.reveal-on-scroll');
-
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-revealed');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px'
-    });
-
-    revealElements.forEach((el) => {
-        revealObserver.observe(el);
-    });
-}
-
-/* ==========================================================================
-   5. INTERACTIVE SPOTLIGHT ON CONTAINERS
-   ========================================================================== */
-function initInteractiveSpotlights() {
-    const spotlightContainers = document.querySelectorAll('.spotlight-surface');
-    
-    spotlightContainers.forEach((container) => {
-        container.addEventListener('mousemove', (e) => {
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            container.style.setProperty('--spotlight-x', `${x}px`);
-            container.style.setProperty('--spotlight-y', `${y}px`);
-        });
-    });
-}
-
-window.effectsEngine = {
-    refreshTilt: init3DTiltEffects
-};
+  window.effectsEngine = { refreshTilt: () => polishDynamicGallery() };
+})();
