@@ -86,14 +86,37 @@
   function updateObsession() {
     const title = document.getElementById('obsession-title');
     const cat = document.getElementById('obsession-category');
+    const link = document.querySelector('.obsession a[href]');
     if (!title) return;
     try {
       const data = JSON.parse(localStorage.getItem('aura-notw') || 'null');
       if (data?.title) title.textContent = data.title;
       if (cat && data?.category) cat.textContent = data.category;
     } catch (_) {}
+    if (link) link.href = `work.html?focus=${encodeURIComponent(title.textContent.trim())}`;
   }
   updateObsession();
+
+  function applyWorkFocus() {
+    if (!document.body.classList.contains('aura-work-page')) return;
+    const focus = new URLSearchParams(location.search).get('focus');
+    if (!focus) return;
+    const input = document.getElementById('gallery-search');
+    if (!input) return;
+
+    let tries = 0;
+    const apply = () => {
+      tries += 1;
+      const cards = [...document.querySelectorAll('.gallery-card')];
+      if (!cards.length && tries < 18) return setTimeout(apply, 120);
+      input.value = focus;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      setTimeout(() => document.getElementById('gallery-grid')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 120);
+    };
+    setTimeout(apply, 120);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyWorkFocus, { once: true });
+  else applyWorkFocus();
 
   document.querySelectorAll('img').forEach(img => {
     if (img.complete) img.classList.add('is-loaded-media');
