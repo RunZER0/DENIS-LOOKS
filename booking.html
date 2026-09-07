@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserve | Lune</title>
+  <meta name="description" content="Reserve a Lune nail experience around the set, time and setting that fit you.">
+  <meta name="theme-color" content="#f4eee6">
+  <link rel="stylesheet" href="site-v2.css?v=20260907c">
+  <link rel="stylesheet" href="experience-v3.css?v=20260907c">
+  <link rel="stylesheet" href="ops.css?v=20260907a">
+</head>
+<body class="ops-page lune-booking-page">
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="index.html"><strong>LUNE</strong><span>Nails, kept personal.</span></a>
+      <div class="nav-links"><a href="work.html">Work</a><a href="inspo.html">Inspo</a><a href="favorites.html">Saved <span class="saved-count" data-saved-count></span></a><a href="standard.html">The standard</a><a href="account.html" data-lune-account-link>Account</a></div>
+      <div class="nav-actions"><span class="nav-note">Reserve through Lune</span></div>
+    </nav>
+  </header>
+
+  <main class="ops-shell">
+    <section class="ops-header">
+      <div><div class="eyebrow">RESERVE</div></div>
+      <div><h1 class="display">Keep the look.<br>Choose the experience.</h1><p class="lede">Start with the set. Tell Lune when, where and how you want the appointment to feel. The matching happens around that.</p></div>
+    </section>
+
+    <div class="ops-grid">
+      <aside class="ops-aside">
+        <div class="ops-card" data-look-summary>
+          <div class="booking-look"><div class="taste-skeleton" style="width:110px;height:140px"></div><div><span>Loading your direction…</span></div></div>
+        </div>
+        <div class="ops-card">
+          <div class="eyebrow">YOUR RESERVATION</div>
+          <div class="summary-list" data-booking-summary>
+            <div class="summary-row"><span>When</span><strong>Not chosen</strong></div>
+            <div class="summary-row"><span>Experience</span><strong>Nearest suitable</strong></div>
+            <div class="summary-row"><span>Area</span><strong>Not chosen</strong></div>
+            <div class="summary-row"><span>Estimate</span><strong>—</strong></div>
+          </div>
+        </div>
+      </aside>
+
+      <section>
+        <div class="booking-progress" aria-hidden="true"><span class="is-active"></span><span></span><span></span><span></span></div>
+
+        <form data-booking-form novalidate>
+          <section class="booking-step is-active" data-step="1">
+            <div class="eyebrow">01 / WHEN</div>
+            <h2 class="display" style="font-size:clamp(3rem,6vw,5.4rem);margin:10px 0 28px">When should it happen?</h2>
+            <div class="ops-field"><label class="ops-label" for="booking-date">Date</label><input id="booking-date" name="date" type="date" required></div>
+            <div class="ops-field"><label class="ops-label" for="booking-time">Time</label><input id="booking-time" name="time" type="time" required step="900"></div>
+            <p class="ops-muted">Availability is confirmed by the partner before Lune asks you to pay.</p>
+            <div class="ops-actions"><button class="ops-button lacquer" type="button" data-next>Continue <span aria-hidden="true">→</span></button></div>
+            <p class="ops-status" data-step-status></p>
+          </section>
+
+          <section class="booking-step" data-step="2">
+            <div class="eyebrow">02 / EXPERIENCE</div>
+            <h2 class="display" style="font-size:clamp(3rem,6vw,5.4rem);margin:10px 0 28px">How should it feel?</h2>
+            <div class="experience-options" data-experience-options>
+              <label class="experience-option is-selected"><input type="radio" name="experience" value="closest" checked><strong>Closest fit</strong><span>The strongest capable station with distance weighted heavily.</span></label>
+              <label class="experience-option"><input type="radio" name="experience" value="select"><strong>Lune Select</strong><span>Put quality and the environment ahead of a few extra minutes of travel.</span></label>
+              <label class="experience-option"><input type="radio" name="experience" value="calm"><strong>Calm</strong><span>Prefer quieter partner environments where the appointment can move at an easier pace.</span></label>
+              <label class="experience-option ops-hidden" data-same-option><input type="radio" name="experience" value="same"><strong>Same place</strong><span>Ask for the station you used last time. Lune will tell you if availability is uncertain.</span></label>
+            </div>
+            <div class="ops-actions" style="margin-top:24px"><button class="ops-button quiet" type="button" data-back>Back</button><button class="ops-button lacquer" type="button" data-next>Continue <span aria-hidden="true">→</span></button></div>
+          </section>
+
+          <section class="booking-step" data-step="3">
+            <div class="eyebrow">03 / WHERE</div>
+            <h2 class="display" style="font-size:clamp(3rem,6vw,5.4rem);margin:10px 0 28px">Where should Lune look?</h2>
+            <div class="ops-field"><label class="ops-label" for="booking-area">Area</label><input id="booking-area" name="area" type="text" autocomplete="address-level2" placeholder="e.g. Westlands, Kilimani, Rongai"></div>
+            <input type="hidden" name="latitude"><input type="hidden" name="longitude">
+            <div class="ops-actions"><button class="ops-button quiet" type="button" data-location>Use my location</button><button class="ops-button" type="button" data-find-matches>See suitable stations</button></div>
+            <p class="ops-status" data-location-status aria-live="polite"></p>
+
+            <div data-match-region class="ops-hidden">
+              <div class="dashboard-section-header" style="margin-top:32px"><div><div class="eyebrow">SUITABLE STATIONS</div><h2>Choose, or let Lune decide.</h2></div><button class="ops-button quiet" type="button" data-auto-match>Let Lune choose</button></div>
+              <div class="match-list" data-match-list></div>
+              <div class="ops-warning ops-hidden" data-same-warning>Your previous station is not showing confirmed availability at this time. You can still ask Lune to send the request there first, or let Lune find another suitable station.</div>
+              <label class="ops-hidden" data-force-same-wrap style="display:flex;gap:10px;align-items:flex-start;margin:14px 0"><input type="checkbox" name="forceSame"><span class="ops-muted">Try my previous station first even though availability is not confirmed.</span></label>
+            </div>
+            <div class="ops-actions" style="margin-top:28px"><button class="ops-button quiet" type="button" data-back>Back</button><button class="ops-button lacquer" type="button" data-next>Continue <span aria-hidden="true">→</span></button></div>
+            <p class="ops-status" data-step-status></p>
+          </section>
+
+          <section class="booking-step" data-step="4">
+            <div class="eyebrow">04 / YOU</div>
+            <h2 class="display" style="font-size:clamp(3rem,6vw,5.4rem);margin:10px 0 28px">Enough to keep it moving.</h2>
+            <div class="admin-form-grid">
+              <div class="ops-field"><label class="ops-label" for="customer-name">Name</label><input id="customer-name" name="customerName" type="text" autocomplete="name" maxlength="120"></div>
+              <div class="ops-field"><label class="ops-label" for="customer-phone">Phone</label><input id="customer-phone" name="customerPhone" type="tel" autocomplete="tel" required maxlength="50"></div>
+            </div>
+            <div class="ops-field"><label class="ops-label" for="customer-email">Email</label><input id="customer-email" name="customerEmail" type="email" autocomplete="email" required maxlength="200"><p class="ops-muted">Used for the booking and Paystack receipt. An account is optional.</p></div>
+            <div class="ops-field ops-hidden" data-offer-field><label class="ops-label" for="offer-code">Lune offer</label><input id="offer-code" name="offerCode" type="text" readonly></div>
+            <div class="ops-card" style="margin:22px 0" data-final-summary></div>
+            <div class="ops-actions"><button class="ops-button quiet" type="button" data-back>Back</button><button class="ops-button lacquer" type="submit" data-submit>Ask Lune to secure it <span aria-hidden="true">→</span></button></div>
+            <p class="ops-status" data-submit-status aria-live="polite"></p>
+            <p class="ops-muted">No payment is taken yet. The station accepts first; payment comes after the appointment is secured.</p>
+          </section>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="site-motion.js?v=20260907f"></script>
+  <script src="booking.js?v=20260907a"></script>
+</body>
+</html>
