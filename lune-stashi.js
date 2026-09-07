@@ -80,7 +80,17 @@
     if (inspo.length && Array.isArray(window.LuneCatalog.inspo)) {
       window.LuneCatalog.inspo.splice(0, window.LuneCatalog.inspo.length, ...inspo);
     }
-    window.dispatchEvent(new CustomEvent('lune:catalog-rendered'));
+
+    let refreshed = false;
+    if (typeof window.LuneCatalog.refreshWork === 'function') {
+      window.LuneCatalog.refreshWork();
+      refreshed = true;
+    }
+    if (typeof window.LuneCatalog.refreshInspo === 'function') {
+      window.LuneCatalog.refreshInspo();
+      refreshed = true;
+    }
+    if (!refreshed) window.dispatchEvent(new CustomEvent('lune:catalog-rendered'));
   }
 
   function hydrateState(payload, mergeLocal = false) {
@@ -105,12 +115,10 @@
       write(KEYS.inspo, nextInspo);
       write(KEYS.events, nextEvents);
 
-      if (payload.identity?.state === 'member') {
-        window.LuneShell?.setIdentity?.({
-          state: 'member',
-          firstName: payload.identity.firstName || ''
-        });
-      }
+      window.LuneShell?.setIdentity?.({
+        state: payload.identity?.state === 'member' ? 'member' : 'anonymous',
+        firstName: payload.identity?.firstName || ''
+      });
 
       window.LuneShell?.syncSavedCount?.();
       window.dispatchEvent(new CustomEvent('lune:taste-changed'));

@@ -29,7 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -46,22 +45,22 @@ jobs:
       - name: Apply database migrations
         run: npm run migrate
 
-      - name: Start Lune
+      - name: Smoke test server, API and persistence
         run: |
           npm start >/tmp/lune.log 2>&1 &
           echo $! >/tmp/lune.pid
+          trap 'kill $(cat /tmp/lune.pid) 2>/dev/null || true' EXIT
           for i in {1..20}; do
             if curl -fsS http://127.0.0.1:3000/healthz >/dev/null; then
-              exit 0
+              break
+            fi
+            if [ "$i" -eq 20 ]; then
+              cat /tmp/lune.log
+              exit 1
             fi
             sleep 1
           done
-          cat /tmp/lune.log
-          exit 1
 
-      - name: Smoke test API and persistence
-        run: |
-          trap 'kill $(cat /tmp/lune.pid) 2>/dev/null || true' EXIT
           curl -fsS http://127.0.0.1:3000/api/health > /tmp/health.json
           curl -fsS http://127.0.0.1:3000/api/catalog > /tmp/catalog.json
           curl -fsS -c /tmp/lune.cookies http://127.0.0.1:3000/api/state > /tmp/state-before.json
@@ -71,6 +70,7 @@ jobs:
             --data '{"savedWork":["set_03"],"savedInspo":[{"id":"inspo_6"}],"events":[{"kind":"work","id":"set_03","action":"save","weight":6,"features":["chrome","3d"],"ts":1788811200000}]}' \
             http://127.0.0.1:3000/api/state > /tmp/state-after.json
           curl -fsS -b /tmp/lune.cookies http://127.0.0.1:3000/api/state > /tmp/state-read.json
+
           node - <<'NODE'
           const fs = require('fs');
           const health = JSON.parse(fs.readFileSync('/tmp/health.json', 'utf8'));

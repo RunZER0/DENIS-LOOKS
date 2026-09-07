@@ -64,6 +64,7 @@
     const input = document.getElementById('gallery-search');
     input?.addEventListener('input', e => { search = e.target.value.trim(); draw(); });
     draw();
+    window.LuneCatalog.refreshWork = draw;
 
     const requested = new URLSearchParams(location.search).get('set');
     if (requested) setTimeout(() => {
@@ -77,6 +78,7 @@
     const container = document.getElementById('inspo-scroll');
     if (!container) return;
     container.innerHTML = INSPO.map(item => `<article class="inspo-card" data-inspo-id="${item.id}"><div class="inspo-img-wrap"><img src="${item.img}" alt="${item.style}" loading="lazy"></div><div class="inspo-meta"><div class="inspo-category">${item.category}</div><div class="inspo-style">${item.style}</div></div></article>`).join('');
+    window.LuneCatalog.refreshInspo = renderInspo;
     window.dispatchEvent(new CustomEvent('lune:catalog-rendered'));
   }
 
