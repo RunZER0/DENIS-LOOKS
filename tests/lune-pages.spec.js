@@ -15,16 +15,33 @@ async function assertSurface(page, path, label) {
   const state = await page.evaluate(() => {
     const transition = document.querySelector('.page-transition');
     const hero = document.querySelector('.hero-art');
+    const width = document.documentElement.clientWidth;
+    const overflowers = [...document.querySelectorAll('body *')].flatMap(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.right <= width + 2 && rect.left >= -2) return [];
+      const style = getComputedStyle(el);
+      if (style.position === 'fixed' || style.display === 'none') return [];
+      return [{
+        tag: el.tagName.toLowerCase(),
+        id: el.id || '',
+        className: typeof el.className === 'string' ? el.className.slice(0, 90) : '',
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+        transform: style.transform
+      }];
+    }).slice(0, 12);
     return {
-      width: document.documentElement.clientWidth,
+      width,
       scrollWidth: document.documentElement.scrollWidth,
       text: document.body.innerText,
       title: document.title,
       transitionLabel: transition ? getComputedStyle(transition, '::after').content : '',
-      heroLabel: hero ? getComputedStyle(hero, '::before').content : ''
+      heroLabel: hero ? getComputedStyle(hero, '::before').content : '',
+      overflowers
     };
   });
-  assert(state.scrollWidth <= state.width + 2, `${label}: horizontal overflow ${state.scrollWidth}px > ${state.width}px`);
+  assert(state.scrollWidth <= state.width + 2, `${label}: horizontal overflow ${state.scrollWidth}px > ${state.width}px; offenders=${JSON.stringify(state.overflowers)}`);
   assert(!/\bAURA\b|Denis|Embu/i.test(state.text), `${label}: legacy public branding is visible`);
   assert(/Lune/i.test(state.title), `${label}: document title does not identify Lune`);
   if (state.transitionLabel) assert(/LUNE/i.test(state.transitionLabel), `${label}: page transition still uses legacy branding`);
