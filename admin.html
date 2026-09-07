@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171411">
+  <title>Lune Operations</title>
+  <link rel="stylesheet" href="admin.css?v=20260907a">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <a class="admin-brand" href="admin.html"><span class="admin-crescent" aria-hidden="true"></span><span><strong>LUNE</strong><small>OPERATIONS</small></span></a>
+      <nav class="admin-nav" aria-label="Operations navigation">
+        <button class="admin-nav-item active" data-view="overview"><span>Overview</span><b>01</b></button>
+        <button class="admin-nav-item" data-view="orders"><span>Orders</span><b data-count="orders"></b></button>
+        <button class="admin-nav-item" data-view="partners"><span>Partners</span><b data-count="partners"></b></button>
+        <button class="admin-nav-item" data-view="locations"><span>Locations</span><b data-count="locations"></b></button>
+        <button class="admin-nav-item" data-view="technicians"><span>Technicians</span><b data-count="technicians"></b></button>
+        <button class="admin-nav-item" data-view="payments"><span>Payments</span><b>06</b></button>
+        <button class="admin-nav-item" data-view="payouts"><span>Payouts</span><b>07</b></button>
+        <button class="admin-nav-item" data-view="customers"><span>Customers</span><b>08</b></button>
+        <button class="admin-nav-item" data-view="curation"><span>Curation</span><b>09</b></button>
+        <button class="admin-nav-item" data-view="offers"><span>Offers</span><b>10</b></button>
+        <button class="admin-nav-item" data-view="recommendations"><span>Recommendations</span><b>11</b></button>
+      </nav>
+      <div class="admin-sidebar-foot">
+        <a href="index.html">Open Lune ↗</a>
+        <span data-admin-clock></span>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button class="admin-menu" type="button" aria-label="Open navigation" data-menu-toggle>☰</button>
+        <div>
+          <div class="admin-kicker" data-view-kicker>NETWORK</div>
+          <h1 data-view-title>Overview</h1>
+        </div>
+        <div class="admin-top-actions">
+          <label class="admin-search"><span>⌕</span><input type="search" placeholder="Search operations" data-global-search></label>
+          <button class="admin-primary" type="button" data-quick-action>New partner</button>
+        </div>
+      </header>
+
+      <section class="admin-view active" data-view-panel="overview">
+        <div class="overview-intro">
+          <div><span class="admin-kicker">TODAY</span><h2>See the network before it becomes a problem.</h2></div>
+          <p>Bookings, partner capacity, money and quality sit in one operating view.</p>
+        </div>
+        <div class="metric-grid" id="metric-grid"></div>
+        <div class="admin-grid two-one">
+          <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">LIVE ORDERS</span><h3>Needs attention</h3></div><button class="admin-link" data-jump="orders">All orders →</button></div><div id="attention-orders"></div></section>
+          <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">NETWORK</span><h3>Partner pulse</h3></div></div><div id="partner-pulse"></div></section>
+        </div>
+        <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">QUALITY</span><h3>The Lune standard, in numbers</h3></div><button class="admin-link" data-jump="partners">Open partners →</button></div><div class="quality-strip" id="quality-strip"></div></section>
+      </section>
+
+      <section class="admin-view" data-view-panel="orders">
+        <div class="view-toolbar"><div class="segmented" data-order-filters><button class="active" data-filter="all">All</button><button data-filter="matching">Matching</button><button data-filter="confirmed">Confirmed</button><button data-filter="completed">Completed</button><button data-filter="issue">Issues</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Look</th><th>Experience</th><th>Partner</th><th>When</th><th>Status</th><th></th></tr></thead><tbody id="orders-body"></tbody></table></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="partners">
+        <div class="view-toolbar"><p>Stations that carry the Lune experience.</p><button class="admin-primary" data-add="partner">Add partner</button></div>
+        <div class="card-grid" id="partners-grid"></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="locations">
+        <div class="view-toolbar"><p>Every physical point available to the allocation engine.</p><button class="admin-primary" data-add="location">Add location</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Location</th><th>Area</th><th>Partner</th><th>Experience</th><th>Capacity</th><th>Status</th></tr></thead><tbody id="locations-body"></tbody></table></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="technicians">
+        <div class="view-toolbar"><p>Capability lives at technician level, not only station level.</p><button class="admin-primary" data-add="technician">Add technician</button></div>
+        <div class="card-grid" id="technicians-grid"></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="payments">
+        <div class="view-toolbar"><p>Customer money and order state stay reconciled.</p></div>
+        <div class="metric-grid compact" id="payment-metrics"></div>
+        <div class="table-wrap"><table><thead><tr><th>Reference</th><th>Order</th><th>Customer</th><th>Amount</th><th>Provider</th><th>Status</th><th>Time</th></tr></thead><tbody id="payments-body"></tbody></table></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="payouts">
+        <div class="view-toolbar"><p>Partner obligations after completed services.</p><button class="admin-primary" data-run-payouts>Prepare payout batch</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Partner</th><th>Period</th><th>Gross</th><th>Lune</th><th>Adjustments</th><th>Payable</th><th>Status</th></tr></thead><tbody id="payouts-body"></tbody></table></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="customers">
+        <div class="view-toolbar"><p>Retention, value and recovery at customer level.</p></div>
+        <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Last booking</th><th>Orders</th><th>Spend</th><th>Saved</th><th>Preference</th><th>State</th></tr></thead><tbody id="customers-body"></tbody></table></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="curation">
+        <div class="view-toolbar"><div class="segmented" data-curation-tabs><button class="active" data-curation="work">Work</button><button data-curation="inspo">Inspo</button></div></div>
+        <div class="curation-grid" id="curation-grid"></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="offers">
+        <div class="view-toolbar"><p>Offers attach to customer state, not random banners.</p><button class="admin-primary" data-add="offer">New offer</button></div>
+        <div class="card-grid" id="offers-grid"></div>
+      </section>
+
+      <section class="admin-view" data-view-panel="recommendations">
+        <div class="recommendation-layout">
+          <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">RANKING</span><h3>Recommendation balance</h3></div></div><form id="reco-form" class="control-stack">
+            <label><span>Taste affinity <output data-output="affinity"></output></span><input type="range" min="0" max="100" name="affinity"></label>
+            <label><span>Editorial quality <output data-output="quality"></output></span><input type="range" min="0" max="100" name="quality"></label>
+            <label><span>Novelty <output data-output="novelty"></output></span><input type="range" min="0" max="100" name="novelty"></label>
+            <label><span>Max from one category <output data-output="categoryCap"></output></span><input type="range" min="1" max="4" name="categoryCap"></label>
+            <label class="switch-row"><span>Exploration slot</span><input type="checkbox" name="exploration"></label>
+            <label class="switch-row"><span>Decay older taste signals</span><input type="checkbox" name="decay"></label>
+            <button class="admin-primary" type="submit">Save balance</button>
+          </form></section>
+          <section class="admin-panel"><div class="panel-head"><div><span class="admin-kicker">GUARDRAILS</span><h3>Keep discovery open</h3></div></div><div class="guardrail-list"><article><b>Repetition penalty</b><span>Previously shown items lose rank before they disappear.</span></article><article><b>Exploration</b><span>At least one slot can challenge the current taste profile.</span></article><article><b>Category cap</b><span>No single finish can dominate a recommendation group.</span></article><article><b>Cold start</b><span>New visitors receive a curated spread instead of a blank feed.</span></article></div></section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="admin-dialog" id="admin-dialog">
+    <form method="dialog" class="admin-dialog-card" id="admin-dialog-form">
+      <div class="dialog-head"><div><span class="admin-kicker" data-dialog-kicker>NEW</span><h2 data-dialog-title></h2></div><button value="cancel" aria-label="Close">×</button></div>
+      <div class="dialog-fields" data-dialog-fields></div>
+      <div class="dialog-actions"><button class="admin-secondary" value="cancel">Cancel</button><button class="admin-primary" type="submit" value="default" data-dialog-submit>Save</button></div>
+    </form>
+  </dialog>
+
+  <aside class="admin-drawer" id="admin-drawer" aria-hidden="true"><button class="drawer-close" data-drawer-close aria-label="Close">×</button><div data-drawer-content></div></aside>
+  <div class="admin-toast" role="status" aria-live="polite"></div>
+  <script src="lune-catalog.js?v=20260907a"></script>
+  <script src="admin.js?v=20260907a"></script>
+</body>
+</html>
