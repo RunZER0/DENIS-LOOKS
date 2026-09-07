@@ -1,4 +1,4 @@
-name: Lune static checks
+name: Lune checks
 on:
   push:
     branches: [build/lune-part-9]
@@ -7,19 +7,82 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lune_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lune_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lune_test
+      PORT: 3000
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Check JavaScript syntax
         run: |
+          npm run check
           node --check lune-catalog.js
           node --check lune-experience.js
-          node --check lune-shell.js
           node --check site-motion.js
           node --check admin.js
           node --check admin-services.js
+
+      - name: Apply database migrations
+        run: npm run migrate
+
+      - name: Start Lune
+        run: |
+          npm start >/tmp/lune.log 2>&1 &
+          echo $! >/tmp/lune.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:3000/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/lune.log
+          exit 1
+
+      - name: Smoke test API and persistence
+        run: |
+          trap 'kill $(cat /tmp/lune.pid) 2>/dev/null || true' EXIT
+          curl -fsS http://127.0.0.1:3000/api/health > /tmp/health.json
+          curl -fsS http://127.0.0.1:3000/api/catalog > /tmp/catalog.json
+          curl -fsS -c /tmp/lune.cookies http://127.0.0.1:3000/api/state > /tmp/state-before.json
+          curl -fsS -b /tmp/lune.cookies -c /tmp/lune.cookies \
+            -X PUT \
+            -H 'content-type: application/json' \
+            --data '{"savedWork":["set_03"],"savedInspo":[{"id":"inspo_6"}],"events":[{"kind":"work","id":"set_03","action":"save","weight":6,"features":["chrome","3d"],"ts":1788811200000}]}' \
+            http://127.0.0.1:3000/api/state > /tmp/state-after.json
+          curl -fsS -b /tmp/lune.cookies http://127.0.0.1:3000/api/state > /tmp/state-read.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const health = JSON.parse(fs.readFileSync('/tmp/health.json', 'utf8'));
+          if (!health.ok || health.database !== 'connected') throw new Error('database health failed');
+          const catalog = JSON.parse(fs.readFileSync('/tmp/catalog.json', 'utf8'));
+          if (catalog.work.length !== 14 || catalog.inspo.length !== 10) throw new Error('catalog seed mismatch');
+          const state = JSON.parse(fs.readFileSync('/tmp/state-read.json', 'utf8'));
+          if (!state.savedWork.includes('set_03')) throw new Error('saved work did not persist');
+          if (!state.savedInspo.some(item => item.id === 'inspo_6')) throw new Error('saved inspo did not persist');
+          if (!state.events.some(event => event.kind === 'work' && event.id === 'set_03' && event.action === 'save')) throw new Error('taste event did not persist');
+          NODE
+
       - name: Check public Lune surfaces
         run: |
           ! grep -nEi 'Aura Nails Hub|Denis|Embu' index.html work.html inspo.html favorites.html standard.html
