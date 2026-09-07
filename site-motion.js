@@ -8,7 +8,7 @@
   if (document.querySelector('.v2-lightbox')) {
     const dialogStyles = document.createElement('link');
     dialogStyles.rel = 'stylesheet';
-    dialogStyles.href = 'dialogs-v2.css?v=20260907b';
+    dialogStyles.href = 'dialogs-v2.css?v=20260908a';
     document.head.appendChild(dialogStyles);
   }
 
@@ -99,6 +99,7 @@
     if (heading) heading.textContent = title;
     if (paragraph) paragraph.textContent = style;
     dialog.dataset.setId = card.dataset.id || '';
+    dialog.dispatchEvent(new CustomEvent('lune:dialog-item',{bubbles:true,detail:{kind:'work',id:dialog.dataset.setId}}));
     if (!dialog.open) dialog.showModal();
   }
 
@@ -152,19 +153,17 @@
     setTimeout(() => { location.href = url.href; }, reduced ? 0 : 420);
   });
 
-  if (!document.querySelector('script[data-lune-taste-engine]')) {
-    const taste = document.createElement('script');
-    taste.src = 'taste-engine-v5.js?v=20260907f';
-    taste.async = false;
-    taste.dataset.luneTasteEngine = '5';
-    document.body.appendChild(taste);
+  function loadScript(src, marker, value='1') {
+    if (document.querySelector(`script[${marker}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false;
+    script.setAttribute(marker,value);
+    document.body.appendChild(script);
   }
 
-  if (!document.querySelector('script[data-lune-discovery]')) {
-    const discovery = document.createElement('script');
-    discovery.src = 'discovery-experience.js?v=20260907f';
-    discovery.async = false;
-    discovery.dataset.luneDiscovery = '1';
-    document.body.appendChild(discovery);
-  }
+  loadScript('lune-data.js?v=20260908a','data-lune-data');
+  loadScript('taste-engine-v5.js?v=20260908a','data-lune-taste-engine','5');
+  loadScript('discovery-experience.js?v=20260908a','data-lune-discovery');
+  loadScript('booking-links.js?v=20260908a','data-lune-booking-links');
 })();
