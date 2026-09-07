@@ -18,12 +18,12 @@
 
   function persistSaved(ids) {
     write(luneLiked, ids);
-    write(legacyLiked, ids); // compatibility until the recommendation engine moves to DB-backed state
+    write(legacyLiked, ids);
   }
 
-  window.isLiked = id => getSaved().includes(id);
+  const isLiked = id => getSaved().includes(id);
 
-  window.toggleLike = id => {
+  function toggleLike(id) {
     const current = getSaved();
     const adding = !current.includes(id);
     const next = adding ? [...current, id] : current.filter(x => x !== id);
@@ -38,9 +38,9 @@
       button.setAttribute('aria-label', adding ? 'Remove from saved' : 'Save this set');
       button.classList.toggle('is-saved', adding);
     });
-  };
+  }
 
-  window.shareSet = async id => {
+  async function shareSet(id) {
     const set = Array.isArray(window.__allSetsRef) ? window.__allSetsRef.find(s => s.id === id) : null;
     if (!set) return;
     const url = new URL('work.html', window.location.href);
@@ -50,7 +50,13 @@
       if (navigator.share) await navigator.share({ title: `${set.title} — Lune`, url: url.toString() });
       else await navigator.clipboard.writeText(url.toString());
     } catch (_) {}
-  };
+  }
+
+  function installOverrides() {
+    window.isLiked = isLiked;
+    window.toggleLike = toggleLike;
+    window.shareSet = shareSet;
+  }
 
   function cleanGalleryActions() {
     document.querySelectorAll('.gallery-card').forEach(card => {
@@ -60,8 +66,8 @@
         actions.querySelectorAll('[title="Download Image"], [title="Chat on WhatsApp"]').forEach(el => el.remove());
         const like = actions.querySelector('[title="Like"], [title="Saved"], [title="Save"]');
         if (like) {
-          like.title = window.isLiked(id) ? 'Saved' : 'Save';
-          like.setAttribute('aria-label', window.isLiked(id) ? 'Remove from saved' : 'Save this set');
+          like.title = isLiked(id) ? 'Saved' : 'Save';
+          like.setAttribute('aria-label', isLiked(id) ? 'Remove from saved' : 'Save this set');
         }
         const share = actions.querySelector('[title="Share Look"]');
         if (share) { share.title = 'Share link'; share.setAttribute('aria-label', 'Share this set'); }
@@ -77,11 +83,14 @@
 
   const observer = new MutationObserver(cleanGalleryActions);
   const boot = () => {
+    installOverrides();
     cleanGalleryActions();
     const grid = document.getElementById('gallery-grid');
     if (grid) observer.observe(grid, { childList: true, subtree: true });
   };
 
+  installOverrides();
+  setTimeout(installOverrides, 0);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 })();
