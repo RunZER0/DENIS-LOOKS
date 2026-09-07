@@ -22,7 +22,6 @@ html { background: var(--lune-paper); color: var(--lune-ink); }
 body { background: var(--lune-paper); color: var(--lune-ink); font-family: var(--lune-body); }
 body::selection { background: rgba(123,48,71,.16); color: var(--lune-ink); }
 
-/* Lune identity */
 .brand { gap: 10px; align-items: center; }
 .brand strong {
   font-family: var(--lune-display);
@@ -53,7 +52,6 @@ body::selection { background: rgba(123,48,71,.16); color: var(--lune-ink); }
   top: -2px;
 }
 
-/* Shared navigation */
 .site-header { background: rgba(246,241,234,.92); border-bottom-color: var(--lune-line); }
 .site-nav { max-width: var(--lune-shell); }
 .nav-links a { color: var(--lune-ink); position: relative; }
@@ -70,6 +68,19 @@ body::selection { background: rgba(123,48,71,.16); color: var(--lune-ink); }
 .nav-links a:hover::after,
 .nav-links a[aria-current='page']::after { right: 0; }
 .nav-note { color: var(--lune-muted); }
+.saved-count:not(:empty) {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  margin-left: 3px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--lune-ink);
+  color: var(--lune-white);
+  font-size: .58rem;
+  line-height: 1;
+}
 
 .lune-account {
   display: inline-flex;
@@ -97,14 +108,16 @@ html[data-identity='member'] .lune-account-dot { background: var(--lune-accent);
 .button:hover { background: #000 !important; border-color: #000 !important; }
 .text-link { color: var(--lune-ink); }
 
-/* Brand semantics */
 .eyebrow { color: var(--lune-accent); letter-spacing: .21em; }
 .display { font-family: var(--lune-display); color: var(--lune-ink); font-weight: 400; }
 .display em { color: var(--lune-accent); }
 .lede { color: var(--lune-muted); }
 .page-index { color: var(--lune-muted); }
 
-/* Continuity: every public route shares the same visual world */
+/* Legacy direct-to-technician actions are not part of the Lune product shell. */
+body[class*='lune-'] a[href*='wa.me'] { display: none !important; }
+.lune-work-page .btn-book-look[onclick] { display: none !important; }
+
 body[data-page] main { view-transition-name: lune-main; }
 .site-header { view-transition-name: lune-header; }
 .site-footer { view-transition-name: lune-footer; }
@@ -127,7 +140,6 @@ body[data-page] main { view-transition-name: lune-main; }
 @keyframes lune-out { to { opacity: 0; transform: translateY(-5px); } }
 @keyframes lune-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* The crescent becomes a proprietary, restrained geometry rather than decoration. */
 .home-hero::after,
 .page-hero::after {
   content: '';
