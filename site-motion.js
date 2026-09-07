@@ -225,4 +225,12 @@
     html.classList.add('is-leaving');
     setTimeout(() => { location.href = url.href; }, reduced ? 0 : 520);
   });
+
+  if (!document.querySelector('script[data-lune-taste-engine]')) {
+    const taste = document.createElement('script');
+    taste.src = 'taste-engine-v5.js?v=20260907e';
+    taste.async = false;
+    taste.dataset.luneTasteEngine = '5';
+    document.body.appendChild(taste);
+  }
 })();
