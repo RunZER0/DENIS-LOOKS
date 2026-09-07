@@ -1,0 +1,306 @@
+:root {
+  --font-display: var(--lune-display, 'Instrument Serif', Georgia, serif);
+  --font-body: var(--lune-body, 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+}
+
+html { color-scheme: light; }
+.page-transition::after { content: 'LUNE'; }
+.hero-art::before { content: 'LUNE / 01'; }
+
+:where(a, button, input, [role='button']):focus-visible {
+  outline: 2px solid var(--lune-accent, #7b3047) !important;
+  outline-offset: 3px;
+}
+
+.lune-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Work: restore the intended Lune gallery layer after the Aura -> Lune rename. */
+.lune-work-page .parallax-bg,
+.lune-work-page .aura-orb,
+.lune-work-page .mesh-grid-pattern,
+.lune-work-page .floating-wa-btn,
+.lune-work-page .scroll-to-top-btn,
+.lune-work-page .toast-container { display: none !important; }
+
+.lune-work-page .services-list {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin: 0 0 42px !important;
+  border-top: 1px solid var(--line) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+.lune-work-page .service-list-item {
+  min-height: 130px !important;
+  padding: 19px 16px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: flex-start !important;
+  text-align: left;
+}
+
+.lune-work-page .service-list-item:last-child { border-right: 0 !important; }
+.lune-work-page .service-list-item.active { background: var(--ink) !important; color: var(--cream) !important; }
+.lune-work-page .service-list-item.active * { color: var(--cream) !important; }
+.lune-work-page .service-list-icon { display: none !important; }
+.lune-work-page .service-card-title {
+  margin: 0 !important;
+  font-family: var(--serif) !important;
+  font-size: 1.24rem !important;
+  font-weight: 400 !important;
+  color: inherit !important;
+}
+.lune-work-page .service-features,
+.lune-work-page .service-list-item p { display: none !important; }
+.lune-work-page .service-list-price { margin-top: 8px !important; }
+.lune-work-page .service-list-price .amount {
+  color: var(--muted) !important;
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+}
+
+.lune-work-page .gallery-controls {
+  margin: 0 0 34px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+.lune-work-page .gallery-search-wrap { position: relative !important; width: min(100%, 420px) !important; }
+.lune-work-page .gallery-search-input {
+  width: 100% !important;
+  min-height: 48px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  padding: 0 8px 0 30px !important;
+  box-shadow: none !important;
+}
+.lune-work-page .gallery-search-input:focus { border-bottom-color: var(--lune-accent) !important; }
+.lune-work-page .search-icon {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted) !important;
+}
+
+.lune-work-page .gallery-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(34px, 4vw, 64px) 18px !important;
+}
+.lune-work-page .gallery-card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  transform: none !important;
+  opacity: 0;
+  translate: 0 22px;
+  transition: opacity .72s ease, translate .9s var(--ease-out) !important;
+}
+.lune-work-page .gallery-card.is-visible { opacity: 1; translate: 0 0; }
+.lune-work-page .card-image-wrap {
+  position: relative !important;
+  aspect-ratio: .80 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: var(--paper-3) !important;
+  cursor: zoom-in;
+}
+.lune-work-page .card-image-wrap img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 1s var(--ease-out), filter .7s ease !important;
+}
+.lune-work-page .gallery-card:hover .card-image-wrap img { transform: scale(1.035) !important; }
+.lune-work-page .card-badge-category,
+.lune-work-page .card-badge-price { position: absolute !important; z-index: 2; }
+.lune-work-page .card-badge-category {
+  top: 12px !important;
+  left: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(244,238,230,.9) !important;
+  color: var(--ink) !important;
+  font-size: .56rem !important;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+.lune-work-page .card-badge-price {
+  top: 12px !important;
+  right: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--ink) !important;
+  color: var(--cream) !important;
+  font-size: .58rem !important;
+}
+.lune-work-page .card-tags-list,
+.lune-work-page .card-style-sub + div { display: none !important; }
+.lune-work-page .card-quick-actions {
+  display: flex !important;
+  opacity: 1 !important;
+  transform: none !important;
+  bottom: 12px !important;
+  right: 12px !important;
+  gap: 7px !important;
+}
+.lune-work-page .action-circle-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border: 1px solid rgba(255,255,255,.55) !important;
+  border-radius: 50% !important;
+  background: rgba(28,23,21,.58) !important;
+  color: #fff !important;
+  backdrop-filter: blur(10px);
+  box-shadow: none !important;
+}
+.lune-work-page .action-circle-btn:hover { background: rgba(28,23,21,.82) !important; transform: translateY(-1px) !important; }
+.lune-work-page .action-circle-btn.is-saved { background: var(--lune-accent) !important; border-color: var(--lune-accent) !important; }
+.lune-work-page .card-content { padding: 15px 0 0 !important; }
+.lune-work-page .card-title {
+  margin: 0 !important;
+  font-family: var(--serif) !important;
+  color: var(--ink) !important;
+  font-size: 1.65rem !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+.lune-work-page .card-style-sub {
+  margin: 7px 0 13px !important;
+  color: var(--muted) !important;
+  font-size: .74rem !important;
+}
+.lune-work-page .card-footer-btns { display: flex !important; align-items: center !important; gap: 12px !important; }
+.lune-work-page .btn-book-look {
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 0 4px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  font-size: .71rem !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+/* Inspo: curated masonry edit, with save/share controls always reachable. */
+.lune-inspo-page .floating-wa-btn,
+.lune-inspo-page .scroll-to-top-btn { display: none !important; }
+.lune-inspo-page .inspo-scroll-container {
+  display: block !important;
+  columns: 3;
+  column-gap: 16px;
+  overflow: visible !important;
+}
+.lune-inspo-page .inspo-card {
+  position: relative;
+  width: 100% !important;
+  display: inline-block !important;
+  break-inside: avoid;
+  margin: 0 0 16px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  cursor: zoom-in;
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .72s ease, transform .9s var(--ease-out) !important;
+}
+.lune-inspo-page .inspo-card.is-visible { opacity: 1; transform: translateY(0); }
+.lune-inspo-page .inspo-img-wrap {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 0 !important;
+  background: var(--paper-3);
+}
+.lune-inspo-page .inspo-img-wrap img {
+  width: 100% !important;
+  height: auto !important;
+  transition: transform 1s var(--ease-out), filter .7s ease !important;
+}
+.lune-inspo-page .inspo-card:hover img { transform: scale(1.035); }
+.lune-inspo-page .inspo-meta {
+  padding: 11px 0 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.lune-inspo-page .inspo-category {
+  color: var(--lune-accent) !important;
+  font-size: .57rem !important;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.lune-inspo-page .inspo-style {
+  color: var(--ink) !important;
+  font-family: var(--serif) !important;
+  font-size: 1.16rem !important;
+  text-align: right;
+}
+
+.lune-context-note {
+  margin: -8px 0 30px;
+  padding: 14px 0 14px 16px;
+  border-left: 2px solid var(--lune-accent);
+  color: var(--lune-muted);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+.lune-context-note strong { color: var(--lune-ink); font-weight: 600; }
+
+@media (max-width: 980px) {
+  .lune-work-page .services-list { grid-template-columns: repeat(3, 1fr) !important; }
+  .lune-work-page .service-list-item:nth-child(3n) { border-right: 0 !important; }
+  .lune-work-page .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .lune-inspo-page .inspo-scroll-container { columns: 2; }
+}
+
+@media (max-width: 620px) {
+  .lune-work-page .services-list { grid-template-columns: repeat(2, 1fr) !important; }
+  .lune-work-page .service-list-item:nth-child(3n) { border-right: 1px solid var(--line) !important; }
+  .lune-work-page .service-list-item:nth-child(2n) { border-right: 0 !important; }
+  .lune-work-page .gallery-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+  .lune-inspo-page .inspo-scroll-container { columns: 1; }
+  .lune-work-page .gallery-controls { justify-content: stretch !important; }
+  .lune-work-page .gallery-search-wrap { width: 100% !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lune-work-page .gallery-card,
+  .lune-inspo-page .inspo-card {
+    opacity: 1 !important;
+    transform: none !important;
+    translate: none !important;
+  }
+}

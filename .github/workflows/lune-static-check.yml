@@ -38,6 +38,7 @@ jobs:
           npm run check
           node --check lune-catalog.js
           node --check lune-experience.js
+          node --check lune-flow.js
           node --check site-motion.js
           node --check admin.js
           node --check admin-services.js
@@ -86,6 +87,12 @@ jobs:
       - name: Check public Lune surfaces
         run: |
           ! grep -nEi 'Aura Nails Hub|Denis|Embu' index.html work.html inspo.html favorites.html standard.html
+          grep -q "content: 'LUNE'" lune-polish.css
+          grep -q "content: 'LUNE / 01'" lune-polish.css
+          grep -q '.lune-work-page .gallery-grid' lune-polish.css
+          grep -q '.lune-inspo-page .inspo-scroll-container' lune-polish.css
+          grep -q 'lune-polish.css' site-v2.css
+          grep -q 'lune-flow.js' lune-shell.js
           grep -q 'LUNE' index.html
           grep -q 'lune-experience.js' work.html
           grep -q 'admin.js' admin.html
