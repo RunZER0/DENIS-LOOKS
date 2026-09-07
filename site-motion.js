@@ -16,11 +16,8 @@
   document.body.appendChild(transition);
 
   const ready = () => requestAnimationFrame(() => html.classList.add('is-loaded'));
-  if (document.fonts?.ready) {
-    Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 420))]).then(ready);
-  } else {
-    setTimeout(ready, 80);
-  }
+  if (document.fonts?.ready) Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 420))]).then(ready);
+  else setTimeout(ready, 80);
 
   window.addEventListener('pageshow', () => {
     html.classList.remove('is-leaving');
@@ -41,7 +38,7 @@
   }, { threshold: .12, rootMargin: '0px 0px -7% 0px' });
 
   function observeReveal(root = document) {
-    const nodes = [...root.querySelectorAll('[data-reveal], .aura-work-page .gallery-card:not([data-motion]), .aura-reference-page .inspo-card:not([data-motion])')];
+    const nodes = [...root.querySelectorAll('[data-reveal], .lune-work-page .gallery-card:not([data-motion]), .lune-inspo-page .inspo-card:not([data-motion])')];
     nodes.forEach((el, index) => {
       if (el.dataset.motion === '1') return;
       el.dataset.motion = '1';
@@ -52,21 +49,9 @@
   }
 
   function polishDynamicWork() {
-    document.querySelectorAll('.aura-work-page .gallery-card').forEach(card => {
-      if (card.dataset.v2Polished === '1') return;
-      card.dataset.v2Polished = '1';
-
-      const wa = card.querySelector('.card-footer-btns a[href*="wa.me"]');
-      const button = card.querySelector('.btn-book-look');
-      if (button && wa) {
-        button.innerHTML = 'Book this look <span aria-hidden="true">↗</span>';
-        button.onclick = e => {
-          e.preventDefault();
-          e.stopPropagation();
-          window.open(wa.href, '_blank', 'noopener');
-        };
-      }
-
+    document.querySelectorAll('.lune-work-page .gallery-card').forEach(card => {
+      if (card.dataset.luneMotion === '1') return;
+      card.dataset.luneMotion = '1';
       [...card.querySelectorAll('.card-content > div')].forEach(el => {
         if (/30% Deposit/i.test(el.textContent)) el.remove();
       });
@@ -89,16 +74,19 @@
     const link = document.querySelector('.obsession a[href]');
     if (!title) return;
     try {
-      const data = JSON.parse(localStorage.getItem('aura-notw') || 'null');
+      const current = localStorage.getItem('lune-current-edit');
+      const legacy = localStorage.getItem('aura-notw');
+      const data = JSON.parse(current || legacy || 'null');
       if (data?.title) title.textContent = data.title;
       if (cat && data?.category) cat.textContent = data.category;
+      if (!current && data) localStorage.setItem('lune-current-edit', JSON.stringify(data));
     } catch (_) {}
     if (link) link.href = `work.html?focus=${encodeURIComponent(title.textContent.trim())}`;
   }
   updateObsession();
 
   function applyWorkFocus() {
-    if (!document.body.classList.contains('aura-work-page')) return;
+    if (!document.body.classList.contains('lune-work-page')) return;
     const focus = new URLSearchParams(location.search).get('focus');
     if (!focus) return;
     const input = document.getElementById('gallery-search');
@@ -127,35 +115,14 @@
     const dialog = document.getElementById('work-lightbox');
     if (!dialog || !card) return;
     const source = card.querySelector('.card-image-wrap img');
-    const title = card.querySelector('.card-title')?.textContent?.trim() || 'Aura set';
-    const style = card.querySelector('.card-style-sub')?.textContent?.trim() || 'Nail artistry by Denis';
-    const wa = card.querySelector('.card-footer-btns a[href*="wa.me"]')?.href || 'https://wa.me/254741959888';
+    const title = card.querySelector('.card-title')?.textContent?.trim() || 'Lune set';
+    const style = card.querySelector('.card-style-sub')?.textContent?.trim() || 'Nail direction';
     const image = dialog.querySelector('.v2-lightbox-media img');
     if (image && source) { image.src = source.src; image.alt = source.alt || title; }
     const heading = dialog.querySelector('.v2-lightbox-copy h2');
     const paragraph = dialog.querySelector('.v2-lightbox-copy p');
-    const action = dialog.querySelector('.v2-lightbox-copy .button');
     if (heading) heading.textContent = title;
     if (paragraph) paragraph.textContent = style;
-    if (action) action.href = wa;
-    dialog.showModal();
-  }
-
-  function openReferenceLightbox(card) {
-    const dialog = document.getElementById('reference-lightbox');
-    if (!dialog || !card) return;
-    const source = card.querySelector('.inspo-img-wrap img');
-    const category = card.querySelector('.inspo-category')?.textContent?.trim() || 'Reference';
-    const style = card.querySelector('.inspo-style')?.textContent?.trim() || 'Nail direction';
-    const image = dialog.querySelector('.v2-lightbox-media img');
-    if (image && source) { image.src = source.src; image.alt = source.alt || style; }
-    const heading = dialog.querySelector('.v2-lightbox-copy h2');
-    const action = dialog.querySelector('.v2-lightbox-copy .button');
-    if (heading) heading.textContent = style;
-    if (action) {
-      const msg = encodeURIComponent(`Hi Denis — I found the reference “${style}” (${category}) on the Aura site and I'd like to use it as a starting point.`);
-      action.href = `https://wa.me/254741959888?text=${msg}`;
-    }
     dialog.showModal();
   }
 
@@ -169,21 +136,11 @@
   });
 
   document.addEventListener('click', e => {
-    const workImage = e.target.closest('.aura-work-page .card-image-wrap');
-    if (workImage) {
-      e.preventDefault();
-      e.stopPropagation();
-      openWorkLightbox(workImage.closest('.gallery-card'));
-      return;
-    }
-
-    const refCard = e.target.closest('.aura-reference-page .inspo-card');
-    if (refCard) {
-      e.preventDefault();
-      e.stopPropagation();
-      openReferenceLightbox(refCard);
-      return;
-    }
+    const workImage = e.target.closest('.lune-work-page .card-image-wrap');
+    if (!workImage) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openWorkLightbox(workImage.closest('.gallery-card'));
   }, true);
 
   if (!reduced && window.matchMedia('(pointer:fine)').matches) {
