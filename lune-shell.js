@@ -84,11 +84,11 @@
     if (cls) document.body.dataset.page = cls.replace(/^lune-/, '').replace(/-page$/, '');
   }
 
-  function loadDataBridge() {
-    if (document.querySelector('script[data-lune-stashi]')) return;
+  function loadScript(src, marker) {
+    if (document.querySelector(`script[${marker}]`)) return;
     const script = document.createElement('script');
-    script.src = 'lune-stashi.js?v=20260907a';
-    script.dataset.luneStashi = '1';
+    script.src = src;
+    script.setAttribute(marker, '1');
     document.head.appendChild(script);
   }
 
@@ -112,7 +112,8 @@
 
   window.LuneShell = { STORAGE, getIdentity, setIdentity, savedTotal, syncSavedCount };
 
-  loadDataBridge();
+  loadScript('lune-stashi.js?v=20260907a', 'data-lune-stashi');
+  loadScript('lune-flow.js?v=20260907a', 'data-lune-flow');
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
