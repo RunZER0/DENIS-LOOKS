@@ -1,0 +1,28 @@
+name: Lune static checks
+on:
+  push:
+    branches: [build/lune-part-9]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check lune-catalog.js
+          node --check lune-experience.js
+          node --check lune-shell.js
+          node --check site-motion.js
+          node --check admin.js
+          node --check admin-services.js
+      - name: Check public Lune surfaces
+        run: |
+          ! grep -nEi 'Aura Nails Hub|Denis|Embu' index.html work.html inspo.html favorites.html standard.html
+          grep -q 'LUNE' index.html
+          grep -q 'lune-experience.js' work.html
+          grep -q 'admin.js' admin.html
