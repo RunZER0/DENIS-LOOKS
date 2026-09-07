@@ -1,6 +1,24 @@
 services:
   - type: web
-    name: aura-nails-hub
-    env: static
-    buildCommand: npm run build
-    staticPublishPath: ./
+    name: lune-web
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run check
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: LUNE_EMAIL_FROM
+        sync: false
+      - key: LUNE_ADMIN_EMAILS
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false

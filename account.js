@@ -1,6 +1,7 @@
 (() => {
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
+  const params = new URLSearchParams(location.search);
 
   function status(node, message, error = false) {
     if (!node) return;
@@ -17,6 +18,17 @@
       database_not_configured: 'Lune accounts are temporarily unavailable.'
     };
     return map[err?.message] || 'Something went wrong. Try again.';
+  }
+
+  function nextPage() {
+    const value = params.get('next');
+    if (!value) return '';
+    try {
+      const url = new URL(value, location.href);
+      if (url.origin !== location.origin) return '';
+      if (!['/partner.html','/admin.html','/booking.html'].includes(url.pathname)) return '';
+      return url.pathname + url.search;
+    } catch (_) { return ''; }
   }
 
   function switchTab(name) {
@@ -40,18 +52,36 @@
     }
   }
 
+  async function renderAccess() {
+    const grid = $('.account-continuation-grid');
+    if (!grid || !window.LuneData?.user) return;
+    grid.querySelectorAll('[data-role-link]').forEach(node => node.remove());
+    try {
+      const access = await window.LuneData.request('/access');
+      if ((access.memberships || []).length) grid.insertAdjacentHTML('beforeend','<a class="account-continuation" data-role-link href="partner.html"><span>PARTNER</span><strong>Open partner desk</strong><em>Requests, appointments and capacity.</em></a>');
+      if (access.isAdmin) grid.insertAdjacentHTML('beforeend','<a class="account-continuation" data-role-link href="admin.html"><span>OPERATIONS</span><strong>Open Lune control</strong><em>Network, orders, payouts and offers.</em></a>');
+    } catch (_) {}
+  }
+
   async function renderOrders() {
     const target = $('[data-account-orders]');
     if (!target || !window.LuneData?.user) return;
     try {
       const data = await window.LuneData.orders();
       const orders = data.orders || [];
-      if (!orders.length) return;
-      target.innerHTML = orders.slice(0, 8).map(order => {
-        const when = order.scheduled_for ? new Date(order.scheduled_for).toLocaleString() : 'Date not chosen yet';
-        return `<article class="account-order"><div><span>${String(order.status || 'draft').replace(/_/g, ' ')}</span><strong>${order.item_snapshot?.title || order.item_id || 'Lune booking'}</strong></div><em>${when}</em></article>`;
+      if (!orders.length) { target.innerHTML = '<p class="account-muted">No bookings yet.</p>'; return; }
+      target.innerHTML = orders.slice(0, 10).map(order => {
+        const when = order.scheduled_for ? new Date(order.scheduled_for).toLocaleString('en-KE',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}) : 'Date not chosen yet';
+        return `<a class="account-order" href="order.html?id=${encodeURIComponent(order.id)}"><div><span>${String(order.status || 'draft').replace(/_/g, ' ')}</span><strong>${order.item_snapshot?.title || order.item_id || 'Lune booking'}</strong></div><em>${when}</em></a>`;
       }).join('');
     } catch (_) {}
+  }
+
+  async function afterAuth(user) {
+    renderUser(user);
+    await Promise.all([renderOrders(), renderAccess()]);
+    const next = nextPage();
+    if (next) location.href = next;
   }
 
   async function boot() {
@@ -60,7 +90,7 @@
     if (!window.LuneData) return;
     await window.LuneData.ready;
     renderUser(window.LuneData.user);
-    renderOrders();
+    if (window.LuneData.user) await Promise.all([renderOrders(),renderAccess()]);
 
     $$('[data-account-tab]').forEach(button => button.addEventListener('click', () => switchTab(button.dataset.accountTab)));
 
@@ -73,8 +103,7 @@
       button.disabled = true;
       try {
         const user = await window.LuneData.login({ email: form.elements.email.value, password: form.elements.password.value });
-        renderUser(user);
-        renderOrders();
+        await afterAuth(user);
       } catch (err) { status(node, niceError(err), true); }
       finally { button.disabled = false; }
     });
@@ -93,8 +122,7 @@
           email: form.elements.email.value,
           password: form.elements.password.value
         });
-        renderUser(user);
-        renderOrders();
+        await afterAuth(user);
       } catch (err) { status(node, niceError(err), true); }
       finally { button.disabled = false; }
     });

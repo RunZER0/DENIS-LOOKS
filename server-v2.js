@@ -4,7 +4,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const crypto = require('crypto');
 const path = require('path');
-const installLuneOps = require('./lune-ops');
+const installLuneOps = require('./lune-ops-loader');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -22,7 +22,10 @@ const pool = DATABASE_URL ? new Pool({
 
 app.disable('x-powered-by');
 app.set('trust proxy',1);
-app.use(express.json({ limit:'512kb' }));
+app.use(express.json({
+  limit:'512kb',
+  verify:(req,_res,buf)=>{ if(req.originalUrl === '/api/paystack/webhook') req.rawBody = Buffer.from(buf); }
+}));
 
 function id(prefix) { return `${prefix}_${crypto.randomUUID()}`; }
 function sha256(value) { return crypto.createHash('sha256').update(String(value)).digest('hex'); }
@@ -234,7 +237,9 @@ app.get('/api/orders',requireDb,asyncRoute(async(req,res)=>{
 
 installLuneOps(app,{pool,requireDb,sessionUser,ensureVisitor,id});
 
-app.use(express.static(path.join(__dirname),{extensions:['html'],maxAge:PROD?'10m':0}));
+const PRIVATE_PATHS = /^(?:\/(?:migrations|scripts|lib)\/|\/(?:server(?:-v2)?|lune-ops(?:-loader)?|build-env|firebase-service|equity-payment|paystack-payment)\.js$|\/env-vars\.json$|\/package(?:-lock)?\.json$|\/render\.yaml$|\/\.env)/i;
+app.use((req,res,next)=>PRIVATE_PATHS.test(req.path)?res.status(404).end():next());
+app.use(express.static(path.join(__dirname),{extensions:['html'],maxAge:PROD?'10m':0,dotfiles:'ignore'}));
 app.use((err,_req,res,_next)=>{console.error('[lune-api]',err);res.status(err.status||500).json({error:err.status?err.message:'internal_error'});});
 
 if(require.main===module){app.listen(PORT,()=>console.log(`Lune listening on :${PORT}${pool?' with database':' without DATABASE_URL'}`));}
