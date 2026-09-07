@@ -33,6 +33,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+
       - name: Check JavaScript syntax
         run: |
           npm run check
@@ -42,11 +45,12 @@ jobs:
           node --check site-motion.js
           node --check admin.js
           node --check admin-services.js
+          node --check tests/lune-pages.spec.js
 
       - name: Apply database migrations
         run: npm run migrate
 
-      - name: Smoke test server, API and persistence
+      - name: Smoke test server, API, persistence and public journey
         run: |
           npm start >/tmp/lune.log 2>&1 &
           echo $! >/tmp/lune.pid
@@ -84,6 +88,8 @@ jobs:
           if (!state.events.some(event => event.kind === 'work' && event.id === 'set_03' && event.action === 'save')) throw new Error('taste event did not persist');
           NODE
 
+          npm run check:pages
+
       - name: Check public Lune surfaces
         run: |
           ! grep -nEi 'Aura Nails Hub|Denis|Embu' index.html work.html inspo.html favorites.html standard.html
@@ -92,6 +98,7 @@ jobs:
           grep -q '.lune-work-page .gallery-grid' lune-polish.css
           grep -q '.lune-inspo-page .inspo-scroll-container' lune-polish.css
           grep -q 'lune-polish.css' site-v2.css
+          grep -q 'lune-a11y.css' site-v2.css
           grep -q 'lune-flow.js' lune-shell.js
           grep -q 'LUNE' index.html
           grep -q 'lune-experience.js' work.html
