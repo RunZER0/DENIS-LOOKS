@@ -113,8 +113,8 @@
 
     $('[data-logout]')?.addEventListener('click', async () => {
       await window.LuneData.logout();
-      renderUser(null);
-      switchTab('login');
+      ['auranails_liked','aura_inspo_saved','lune_taste_events_v1','lune_recommendation_history_v1','lune_taste_outbox_v1','lune_discovery_context_v1','lune_discovery_trail_v1','lune_visitor_id_v1'].forEach(key => localStorage.removeItem(key));
+      location.href = 'index.html';
     });
 
     window.addEventListener('lune:identity', event => renderUser(event.detail?.user || null));
