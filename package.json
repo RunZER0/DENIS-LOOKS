@@ -8,7 +8,7 @@
     "start": "node server.js",
     "migrate": "node migrate.js",
     "check": "node --check server.js && node --check migrate.js && node --check lune-stashi.js && node --check lune-shell.js && node --check lune-flow.js",
-    "check:pages": "node tests/lune-pages.spec.js"
+    "check:pages": "node tests/lune-pages.spec.js && node tests/lune-admin.spec.js"
   },
   "dependencies": {
     "pg": "^8.16.3"
