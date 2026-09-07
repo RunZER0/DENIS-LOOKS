@@ -9,6 +9,7 @@
   const write = (key, value) => {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
   };
+  const slugify = value => String(value || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   function getSaved() {
     const next = read(luneLiked, null);
@@ -40,16 +41,29 @@
     });
   }
 
+  async function shareUrl(title, url) {
+    try {
+      if (navigator.share) await navigator.share({ title, url });
+      else await navigator.clipboard.writeText(url);
+    } catch (_) {}
+  }
+
   async function shareSet(id) {
     const set = Array.isArray(window.__allSetsRef) ? window.__allSetsRef.find(s => s.id === id) : null;
     if (!set) return;
     const url = new URL('work.html', window.location.href);
     url.searchParams.set('set', id);
     url.searchParams.set('ref', 'share');
-    try {
-      if (navigator.share) await navigator.share({ title: `${set.title} — Lune`, url: url.toString() });
-      else await navigator.clipboard.writeText(url.toString());
-    } catch (_) {}
+    await shareUrl(`${set.title} — Lune`, url.toString());
+  }
+
+  function inspoFromElement(el) {
+    const card = el.closest('.personal-inspo-card, .inspo-card');
+    if (!card) return null;
+    const id = card.dataset.inspoId || el.dataset.shareInspo || '';
+    const style = card.querySelector('.inspo-style, h3')?.textContent?.trim() || 'Lune inspo';
+    const key = card.dataset.inspoKey || `${id}-${slugify(style)}`;
+    return { id, style, key };
   }
 
   function installOverrides() {
@@ -80,6 +94,19 @@
       if (deposit) deposit.remove();
     });
   }
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('[data-inspo-share], [data-share-inspo]');
+    if (!trigger) return;
+    const item = inspoFromElement(trigger);
+    if (!item?.key) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const url = new URL('inspo.html', window.location.href);
+    url.searchParams.set('look', item.key);
+    url.searchParams.set('ref', 'share');
+    shareUrl(`${item.style} — Lune`, url.toString());
+  }, true);
 
   const observer = new MutationObserver(cleanGalleryActions);
   const boot = () => {
