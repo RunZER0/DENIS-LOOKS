@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Saved | Aura Nails Hub</title>
-  <meta name="description" content="Your saved Aura nail sets and inspiration, kept together with recommendations shaped around your taste.">
+  <title>Saved | Lune</title>
+  <meta name="description" content="Your saved Lune work and inspo, kept together with recommendations shaped around your taste without repeating the same direction forever.">
   <meta name="theme-color" content="#f4eee6">
   <link rel="stylesheet" href="site-v2.css?v=20260907c">
   <link rel="stylesheet" href="experience-v3.css?v=20260907c">
@@ -12,16 +12,17 @@
 <body class="aura-favorites-page">
   <header class="site-header">
     <nav class="site-nav" aria-label="Main navigation">
-      <a class="brand" href="index.html"><strong>AURA</strong><span>Nail studio · Embu</span></a>
+      <a class="brand" href="index.html"><strong>LUNE</strong><span>Nails, kept personal.</span></a>
       <div class="nav-links">
         <a href="work.html">Work</a>
         <a href="inspo.html">Inspo</a>
         <a href="favorites.html" aria-current="page">Saved <span class="saved-count" data-saved-count></span></a>
         <a href="standard.html">The standard</a>
+        <a href="account.html" data-lune-account-link>Account</a>
       </div>
       <div class="nav-actions">
-        <span class="nav-note">House calls + studio</span>
-        <a class="button" href="https://wa.me/254741959888?text=Hi%20Denis%20%E2%80%94%20I%27d%20like%20to%20book%20a%20nail%20appointment%20with%20Aura%20Nails%20Hub.%20What%27s%20available%3F" target="_blank" rel="noopener">Book a set <span class="arrow">↗</span></a>
+        <span class="nav-note">Your shortlist</span>
+        <a class="button" href="inspo.html">Keep exploring <span class="arrow">→</span></a>
       </div>
     </nav>
   </header>
@@ -33,7 +34,7 @@
         <div class="hero-copy">
           <div class="eyebrow">YOUR SHORTLIST</div>
           <h1 class="display">Keep what keeps<br>pulling you back.</h1>
-          <p class="lede">Sets and inspo you save stay together here, with nearby directions and a few that stretch the shortlist somewhere new.</p>
+          <p class="lede">Finished sets and inspo stay together here. Lune keeps the familiar close, then leaves enough room for something new to surprise you.</p>
         </div>
       </div>
     </section>
@@ -45,7 +46,7 @@
         <section class="saved-section" data-saved-work-section>
           <div class="saved-section-header">
             <div class="eyebrow">SAVED WORK</div>
-            <div><h2 class="display">The sets you kept.</h2><p class="lede">Compare shape, finish and structure side by side before one wins.</p></div>
+            <div><h2 class="display">The sets you kept.</h2><p class="lede">Compare shape, finish and structure side by side before one starts to feel obvious.</p></div>
           </div>
           <div class="taste-grid" id="saved-work-grid"></div>
         </section>
@@ -53,7 +54,7 @@
         <section class="saved-section" data-saved-inspo-section>
           <div class="saved-section-header">
             <div class="eyebrow">SAVED INSPO</div>
-            <div><h2 class="display">The ideas that stayed.</h2><p class="lede">A finish from one, a shape from another, one detail from somewhere else — they can meet in the same set.</p></div>
+            <div><h2 class="display">The ideas that stayed.</h2><p class="lede">A finish from one. A shape from another. One detail from somewhere else. They do not have to stay separate.</p></div>
           </div>
           <div class="taste-grid" id="saved-inspo-grid"></div>
         </section>
@@ -80,24 +81,22 @@
 
     <section class="closing">
       <div class="shell closing-grid">
-        <div data-reveal><div class="eyebrow">READY WHEN ONE WINS</div><h2 class="display">Send the shortlist.</h2><p>Denis can work from one saved set or combine the details you kept from several.</p></div>
-        <a class="button" data-reveal style="--delay:100ms" href="https://wa.me/254741959888?text=Hi%20Denis%20%E2%80%94%20I%27ve%20saved%20a%20few%20looks%20on%20the%20Aura%20site%20and%20I%27d%20like%20to%20book%20from%20that%20shortlist." target="_blank" rel="noopener">Book on WhatsApp <span class="arrow">↗</span></a>
+        <div data-reveal><div class="eyebrow">YOUR LUNE</div><h2 class="display">Keep the shortlist wherever you go.</h2><p>An account keeps your saves, taste and history with you across devices.</p></div>
+        <a class="button" data-reveal style="--delay:100ms" href="account.html">Keep my Lune <span class="arrow">→</span></a>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <a class="brand" href="index.html"><strong>AURA</strong><span>Nail studio · Embu</span></a>
-      <div class="footer-links"><a href="work.html">Work</a><a href="inspo.html">Inspo</a><a href="favorites.html">Saved</a><a href="standard.html">The standard</a></div>
-      <div class="footer-meta">Nail artistry by Denis Mwaura<br>Embu, Kenya · 2026</div>
+      <a class="brand" href="index.html"><strong>LUNE</strong><span>Nails, kept personal.</span></a>
+      <div class="footer-links"><a href="work.html">Work</a><a href="inspo.html">Inspo</a><a href="favorites.html">Saved</a><a href="standard.html">The standard</a><a href="account.html">Account</a></div>
+      <div class="footer-meta">Curated nail discovery<br>Nairobi, Kenya · 2026</div>
     </div>
   </footer>
 
-  <script src="env-config.js"></script>
-  <script src="firebase-service.js"></script>
   <script src="app.js"></script>
-  <script src="site-motion.js?v=20260907c"></script>
-  <script src="experience-v4.js?v=20260907d"></script>
+  <script src="site-motion.js?v=20260907f"></script>
+  <script src="experience-v4.js?v=20260907f"></script>
 </body>
 </html>

@@ -1,12 +1,13 @@
-name: Lune Part 2 checks
+name: Lune parts 2-4 checks
 
 on:
   push:
     branches:
+      - build/lune-parts-2-4-polish
       - build/part2-database-identity
-  pull_request:
-    branches:
       - build/part3-discovery-experience
+      - build/part4-taste-engine
+  pull_request:
 
 jobs:
   check:
@@ -22,5 +23,8 @@ jobs:
       - run: node --check account.js
       - run: node --check discovery-experience.js
       - run: node --check taste-engine-v5.js
+      - run: node --check experience-v4.js
+      - run: node --check site-motion.js
       - run: node discovery-experience.test.js
       - run: node taste-engine-v5.test.js
+      - run: node scripts/qa-public-experience.js
