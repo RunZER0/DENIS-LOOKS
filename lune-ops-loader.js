@@ -8,6 +8,11 @@ const filename = path.join(__dirname, 'lune-ops.js');
 let source = fs.readFileSync(filename, 'utf8');
 
 source = source.replace(
+  "module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, ensureVisitor, id }) {",
+  "module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, ensureVisitor, id }) {\n  require('./release-ops')(app,{pool,requireDb,sessionUser,ensureVisitor,id});"
+);
+
+source = source.replace(
   "    const ownerFilter = user ? ['user_id',$2 = undefined] : null;\n    void ownerFilter;\n",
   ''
 );
