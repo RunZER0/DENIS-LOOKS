@@ -56,6 +56,7 @@
     const footerBottom = q('.footer-bottom');
     if (upload && footerBottom) {
       upload.classList.add('studio-admin-link');
+      upload.classList.remove('btn-upload-nav');
       upload.innerHTML = 'Studio admin';
       footerBottom.appendChild(upload);
     }
