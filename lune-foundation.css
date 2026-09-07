@@ -54,7 +54,7 @@ body::selection { background: rgba(123,48,71,.16); color: var(--lune-ink); }
 
 .site-header { background: rgba(246,241,234,.92); border-bottom-color: var(--lune-line); }
 .site-nav { max-width: var(--lune-shell); }
-.nav-links a { color: var(--lune-ink); position: relative; }
+.nav-links a { color: var(--lune-ink); position: relative; white-space: nowrap; }
 .nav-links a::after {
   content: '';
   position: absolute;
@@ -114,7 +114,6 @@ html[data-identity='member'] .lune-account-dot { background: var(--lune-accent);
 .lede { color: var(--lune-muted); }
 .page-index { color: var(--lune-muted); }
 
-/* Legacy direct-to-technician actions are not part of the Lune product shell. */
 body[class*='lune-'] a[href*='wa.me'] { display: none !important; }
 .lune-work-page .btn-book-look[onclick] { display: none !important; }
 
@@ -168,11 +167,25 @@ body[data-page] main { view-transition-name: lune-main; }
 }
 
 @media (max-width: 720px) {
-  .brand strong { font-size: 1.42rem; }
+  .site-nav { gap: 12px; padding-inline: 16px; }
+  .brand { gap: 7px; flex: 0 0 auto; }
+  .brand strong { font-size: 1.38rem; }
+  .brand > span:last-child { display: none; }
   .lune-mark { width: 15px; height: 15px; flex-basis: 15px; }
-  .nav-links { gap: 16px; }
-  .nav-links a { font-size: .72rem; }
-  .nav-links a[href='standard.html'] { display: none; }
+  .nav-links {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
+    gap: 17px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { font-size: .7rem; }
+  .nav-actions .button { display: none !important; }
+  .lune-account { min-height: 38px; padding: 0 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
