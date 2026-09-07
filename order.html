@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Your reservation | Lune</title>
+  <meta name="theme-color" content="#f4eee6">
+  <link rel="stylesheet" href="site-v2.css?v=20260907c">
+  <link rel="stylesheet" href="experience-v3.css?v=20260907c">
+  <link rel="stylesheet" href="ops.css?v=20260907a">
+</head>
+<body class="ops-page lune-order-page">
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="index.html"><strong>LUNE</strong><span>Nails, kept personal.</span></a>
+      <div class="nav-links"><a href="work.html">Work</a><a href="inspo.html">Inspo</a><a href="favorites.html">Saved <span class="saved-count" data-saved-count></span></a><a href="account.html" data-lune-account-link>Account</a></div>
+      <div class="nav-actions"><span class="nav-note">Your reservation</span></div>
+    </nav>
+  </header>
+
+  <main class="ops-shell order-stage">
+    <div data-order-loading class="ops-card"><div class="eyebrow">LUNE</div><h2>Finding your reservation…</h2></div>
+    <div data-order-content class="ops-hidden">
+      <section class="order-hero">
+        <div>
+          <div class="eyebrow" data-order-eyebrow>RESERVATION</div>
+          <h1 class="display" style="font-size:clamp(4rem,8vw,7.5rem)" data-order-title>Your set</h1>
+          <p class="lede" data-order-lede>Lune is keeping the moving parts connected.</p>
+          <div class="ops-actions" data-order-actions></div>
+          <p class="ops-status" data-order-status aria-live="polite"></p>
+        </div>
+        <figure class="order-look"><img data-order-image src="" alt=""></figure>
+      </section>
+
+      <section class="order-state">
+        <div class="ops-card">
+          <div class="summary-list" data-order-summary></div>
+        </div>
+        <div class="timeline" data-order-timeline></div>
+        <div data-station-region></div>
+        <div data-review-region></div>
+      </section>
+    </div>
+    <div data-order-error class="ops-card ops-hidden"><div class="eyebrow">RESERVATION</div><h2>We could not open this reservation.</h2><p class="ops-muted">Open it from the same device or from Your Lune if you created an account.</p><a class="text-link" href="account.html">Open Your Lune <span class="arrow">→</span></a></div>
+  </main>
+
+  <script src="site-motion.js?v=20260907f"></script>
+  <script src="order.js?v=20260907a"></script>
+</body>
+</html>
