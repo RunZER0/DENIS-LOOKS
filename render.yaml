@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: aura-nails-hub
+    name: lune-nails
     env: static
     buildCommand: npm run build
     staticPublishPath: ./
