@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="site-v2.css?v=20260908b">
   <link rel="stylesheet" href="experience-v3.css?v=20260908b">
+  <link rel="stylesheet" href="inspo-polish.css?v=20260908a">
 </head>
 <body class="aura-inspo-page">
   <header class="site-header">
@@ -40,7 +41,16 @@
       </div>
     </section>
 
-    <section class="page-section alt">
+    <nav class="inspo-wayfinder" aria-label="Inspo navigation">
+      <div class="shell">
+        <span class="eyebrow">EXPLORE</span>
+        <a href="#for-you">For you</a>
+        <a href="#the-edit">Browse all</a>
+        <a href="favorites.html">Saved</a>
+      </div>
+    </nav>
+
+    <section class="page-section alt" id="for-you">
       <div class="shell">
         <div class="section-heading-row">
           <div data-reveal><div class="eyebrow">FOR YOU</div></div>
@@ -55,7 +65,7 @@
       </div>
     </section>
 
-    <section class="page-section">
+    <section class="page-section" id="the-edit">
       <div class="shell">
         <div class="section-heading-row">
           <div data-reveal><div class="eyebrow">THE EDIT</div></div>
@@ -109,9 +119,10 @@
     </div>
   </dialog>
 
-  <script src="public-catalog.js?v=20260908b"></script>
+  <script src="public-catalog.js?v=20260908c"></script>
   <script src="inspo-stability.js?v=20260908c"></script>
+  <script src="inspo-ux.js?v=20260908a"></script>
   <script src="site-motion.js?v=20260908a"></script>
-  <script src="experience-v4.js?v=20260908b"></script>
+  <script src="experience-v4.js?v=20260908d"></script>
 </body>
 </html>
