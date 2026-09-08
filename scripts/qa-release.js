@@ -25,7 +25,7 @@ assert(loader.includes("require('./release-ops')"),'release operations must be i
 assert(loader.includes("require('./launch-ops')"),'launch operations must be installed');
 assert(loader.includes('blockedOffers'),'dismissed offers must remain dismissed');
 assert(loader.includes('source_order_id'),'reorders must retain lineage');
-assert(launch.includes("app.get('/app.js'"),'legacy Aura browser engine must be blocked');
+for(const path of ['/app.js','/release-ops.js','/launch-ops.js']) assert(launch.includes(`'${path}'`),`${path} must not be publicly served`);
 assert(launch.includes("/api/partner/technicians"),'partner technician mapping missing');
 assert(launch.includes("/api/admin/audit"),'admin audit mapping missing');
 assert(/env:\s*node/.test(render),'Render must deploy a Node service');
