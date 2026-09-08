@@ -9,7 +9,7 @@
     "dev": "node server-v2.js",
     "start": "node server-v2.js",
     "migrate": "node scripts/migrate.js",
-    "check": "node --check server-v2.js && node --check lune-ops.js && node --check lune-ops-loader.js && node --check release-ops.js && node --check lib/paystack.js && node --check lib/notify.js && node --check lib/allocation.js && node --check booking.js && node --check order.js && node --check partner.js && node --check admin.js && node --check account.js && node --check booking-links.js && node discovery-experience.test.js && node taste-engine-v5.test.js && node scripts/qa-public-experience.js && node scripts/qa-release.js"
+    "check": "node --check server-v2.js && node --check lune-ops.js && node --check lune-ops-loader.js && node --check release-ops.js && node --check launch-ops.js && node --check lib/paystack.js && node --check lib/notify.js && node --check lib/allocation.js && node --check public-catalog.js && node --check booking.js && node --check order.js && node --check partner.js && node --check admin.js && node --check admin-launch.js && node --check account.js && node --check booking-links.js && node discovery-experience.test.js && node taste-engine-v5.test.js && node scripts/qa-public-experience.js && node scripts/qa-release.js"
   },
   "engines": {
     "node": ">=20"

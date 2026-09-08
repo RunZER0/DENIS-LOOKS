@@ -9,7 +9,7 @@ let source = fs.readFileSync(filename, 'utf8');
 
 source = source.replace(
   "module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, ensureVisitor, id }) {",
-  "module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, ensureVisitor, id }) {\n  require('./release-ops')(app,{pool,requireDb,sessionUser,ensureVisitor,id});"
+  "module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, ensureVisitor, id }) {\n  require('./release-ops')(app,{pool,requireDb,sessionUser,ensureVisitor,id});\n  require('./launch-ops')(app,{pool,requireDb,sessionUser,ensureVisitor,id});"
 );
 
 source = source.replace(

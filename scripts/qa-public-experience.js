@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const pages = ['index.html','work.html','inspo.html','favorites.html','standard.html','account.html'];
 const redirectPages = ['references.html'];
-const scripts = ['experience-v4.js','site-motion.js'];
+const scripts = ['experience-v4.js','site-motion.js','public-catalog.js'];
 const failures = [];
 
 function fail(file, message) { failures.push(`${file}: ${message}`); }
@@ -31,6 +31,16 @@ for (const file of scripts) {
     if (text.includes(term)) fail(file, `legacy user-facing behavior remains: ${term}`);
   }
 }
+
+for (const file of ['work.html','inspo.html','favorites.html']) {
+  const text = fs.readFileSync(file,'utf8');
+  if (!text.includes('public-catalog.js')) fail(file,'live catalog runtime is missing');
+  if (text.includes('<script src="app.js"')) fail(file,'legacy Aura application engine is still loaded');
+}
+
+const catalog = fs.readFileSync('public-catalog.js','utf8');
+if (!catalog.includes("api('/catalog/work')") || !catalog.includes("api('/catalog/inspo')")) fail('public-catalog.js','public discovery is not sourced from the live catalog API');
+if (!catalog.includes('lune:taste-changed')) fail('public-catalog.js','live catalog does not refresh taste and Saved surfaces');
 
 const work = fs.readFileSync('work.html', 'utf8');
 if (!work.includes('data-dialog-save-work')) fail('work.html', 'work detail does not preserve save continuity');
