@@ -91,6 +91,13 @@
     </article>`;
   }
 
+  function inspoCard(item) {
+    return `<article class="inspo-card" data-inspo-id="${esc(item.id)}">
+      <div class="inspo-img-wrap"><img src="${esc(item.img)}" alt="${esc(item.style)}" loading="lazy"></div>
+      <div class="inspo-info"><span class="inspo-category">${esc(item.category || 'Inspo')}</span><strong class="inspo-style">${esc(item.style)}</strong></div>
+    </article>`;
+  }
+
   function renderWork() {
     const grid = $('#gallery-grid');
     if (!grid) return;
@@ -104,15 +111,21 @@
 
   function renderInspo() {
     const grid = $('#inspo-scroll');
-    if (!grid) return;
-    if (!inspo.length) {
-      grid.innerHTML = '<div class="ops-empty">Inspo is temporarily unavailable.</div>';
+    if (grid) {
+      if (!inspo.length) grid.innerHTML = '<div class="ops-empty">Inspo is temporarily unavailable.</div>';
+      else grid.innerHTML = inspo.map(inspoCard).join('');
       return;
     }
-    grid.innerHTML = inspo.map(item => `<article class="inspo-card" data-inspo-id="${esc(item.id)}">
-      <div class="inspo-img-wrap"><img src="${esc(item.img)}" alt="${esc(item.style)}" loading="lazy"></div>
-      <div class="inspo-info"><span class="inspo-category">${esc(item.category || 'Inspo')}</span><strong class="inspo-style">${esc(item.style)}</strong></div>
-    </article>`).join('');
+    if (!inspo.length || !document.body.classList.contains('aura-favorites-page')) return;
+    let bridge = $('#lune-inspo-catalog-bridge');
+    if (!bridge) {
+      bridge = document.createElement('div');
+      bridge.id = 'inspo-scroll';
+      bridge.dataset.catalogBridge = '1';
+      bridge.hidden = true;
+      document.body.appendChild(bridge);
+    }
+    bridge.innerHTML = inspo.map(inspoCard).join('');
   }
 
   function bindFilters() {
@@ -142,6 +155,7 @@
       renderWork();
       renderInspo();
       window.dispatchEvent(new CustomEvent('lune:catalog-ready', { detail:{ work, inspo } }));
+      window.dispatchEvent(new CustomEvent('lune:taste-changed', { detail:{ source:'catalog' } }));
     } catch (error) {
       const workGrid = $('#gallery-grid');
       if (workGrid) workGrid.innerHTML = '<div class="saved-empty" style="grid-column:1/-1"><strong>Work is temporarily unavailable.</strong><span>Your saved direction is safe. Try again shortly.</span><div class="saved-empty-actions"><a class="quiet-action" href="inspo.html">See inspo</a></div></div>';
