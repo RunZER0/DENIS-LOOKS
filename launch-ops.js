@@ -27,7 +27,7 @@ module.exports = function installLaunchOps(app,{pool,requireDb,sessionUser}) {
     return {current,isAdmin,ids:rows.map(r=>r.partner_id)};
   }
 
-  app.get('/app.js',(_req,res)=>res.status(404).end());
+  app.get(['/app.js','/release-ops.js','/launch-ops.js'],(_req,res)=>res.status(404).end());
 
   app.get('/api/partner/technicians',requireDb,asyncRoute(async(req,res)=>{
     const ctx = await partnerIds(req);
