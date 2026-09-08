@@ -1,0 +1,230 @@
+/* Inspo-only clarity pass: wayfinding, high-contrast cards and contained preview modal. */
+.aura-inspo-page .inspo-wayfinder{
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:rgba(244,238,230,.94);
+}
+.aura-inspo-page .inspo-wayfinder .shell{
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  gap:24px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.aura-inspo-page .inspo-wayfinder .shell::-webkit-scrollbar{display:none}
+.aura-inspo-page .inspo-wayfinder .eyebrow{flex:0 0 auto;color:var(--muted)}
+.aura-inspo-page .inspo-wayfinder a{
+  flex:0 0 auto;
+  color:var(--ink);
+  text-decoration:none;
+  font-size:.76rem;
+  font-weight:600;
+  padding:18px 0 16px;
+  border-bottom:2px solid transparent;
+}
+.aura-inspo-page .inspo-wayfinder a:hover,
+.aura-inspo-page .inspo-wayfinder a:focus-visible{color:var(--lacquer);border-bottom-color:var(--lacquer)}
+.aura-inspo-page #for-you,
+.aura-inspo-page #the-edit{scroll-margin-top:110px}
+
+/* Main edit cards: use the image-led, high-contrast treatment so labels and actions never disappear. */
+.aura-inspo-page #the-edit .inspo-scroll-container{gap:22px!important}
+.aura-inspo-page #the-edit .inspo-card{
+  position:relative!important;
+  aspect-ratio:.78;
+  overflow:hidden;
+  border-radius:18px;
+  background:var(--ink)!important;
+  color:var(--cream)!important;
+  box-shadow:0 12px 32px rgba(28,23,21,.10);
+  cursor:zoom-in;
+  isolation:isolate;
+}
+.aura-inspo-page #the-edit .inspo-card:focus-visible{
+  outline:2px solid var(--lacquer);
+  outline-offset:4px;
+}
+.aura-inspo-page #the-edit .inspo-img-wrap{
+  position:absolute!important;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--paper-3);
+}
+.aura-inspo-page #the-edit .inspo-img-wrap::after{
+  content:'';
+  position:absolute;
+  inset:34% 0 0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(to bottom,rgba(28,23,21,0),rgba(28,23,21,.32) 34%,rgba(28,23,21,.88) 78%,rgba(28,23,21,.97));
+}
+.aura-inspo-page #the-edit .inspo-img-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .7s var(--ease-out);
+}
+.aura-inspo-page #the-edit .inspo-card:hover .inspo-img-wrap img{transform:scale(1.025)}
+.aura-inspo-page #the-edit .inspo-actions{z-index:4}
+.aura-inspo-page #the-edit .inspo-info{
+  position:absolute!important;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:3;
+  display:flex!important;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 12px;
+  min-height:0!important;
+  padding:18px 16px 16px!important;
+  background:transparent!important;
+  color:var(--cream)!important;
+}
+.aura-inspo-page #the-edit .inspo-category{
+  flex:1 0 100%;
+  color:#efc9d2!important;
+  font-size:.58rem!important;
+  font-weight:700!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase;
+}
+.aura-inspo-page #the-edit .inspo-style{
+  flex:1 0 100%;
+  color:var(--cream)!important;
+  font-family:var(--serif)!important;
+  font-size:clamp(1.45rem,2vw,1.95rem)!important;
+  font-weight:400!important;
+  line-height:.98!important;
+  letter-spacing:-.025em;
+  text-shadow:0 1px 16px rgba(28,23,21,.22);
+}
+.aura-inspo-page #the-edit .inspo-preview-link{
+  appearance:none;
+  border:1px solid rgba(255,250,244,.55);
+  border-radius:999px;
+  background:rgba(28,23,21,.28);
+  color:var(--cream);
+  min-height:38px;
+  padding:0 14px;
+  font:600 .7rem/1 var(--sans);
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+}
+.aura-inspo-page #the-edit .inspo-preview-link:hover,
+.aura-inspo-page #the-edit .inspo-preview-link:focus-visible{background:rgba(28,23,21,.62);border-color:var(--cream)}
+.aura-inspo-page #the-edit .inspo-info .lune-reserve-link{
+  flex:1 0 100%;
+  min-height:42px;
+  margin-top:2px;
+  padding:0 15px!important;
+  border:1px solid var(--cream)!important;
+  border-radius:999px;
+  background:var(--cream)!important;
+  color:var(--ink)!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  white-space:nowrap;
+  font-size:.72rem!important;
+  font-weight:700!important;
+}
+.aura-inspo-page #the-edit .inspo-info .lune-reserve-link:hover,
+.aura-inspo-page #the-edit .inspo-info .lune-reserve-link:focus-visible{
+  background:var(--paper-2)!important;
+  border-color:var(--paper-2)!important;
+  color:var(--ink)!important;
+}
+
+/* Preview: keep the full image visible and keep every action inside the viewport. */
+.aura-inspo-page .v3-dialog{
+  width:min(980px,calc(100vw - 48px));
+  height:min(76vh,700px);
+  max-height:calc(100vh - 48px);
+  overflow:hidden;
+  border-radius:18px;
+  background:var(--paper);
+}
+.aura-inspo-page .v3-dialog-grid{
+  height:100%;
+  grid-template-columns:minmax(0,1.06fr) minmax(330px,.94fr);
+}
+.aura-inspo-page .v3-dialog-media{
+  min-height:0!important;
+  height:100%;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:var(--paper-3);
+}
+.aura-inspo-page .v3-dialog-media img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+.aura-inspo-page .v3-dialog-copy{
+  min-height:0;
+  overflow-y:auto;
+  justify-content:center!important;
+  padding:38px 38px 34px!important;
+}
+.aura-inspo-page .v3-dialog-copy h2{font-size:clamp(2.55rem,4.3vw,4.5rem)!important}
+.aura-inspo-page .v3-dialog-copy .card-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:0;
+}
+.aura-inspo-page .v3-dialog-copy [data-dialog-work].button{
+  background:transparent;
+  color:var(--ink);
+  border-color:rgba(28,23,21,.24);
+}
+.aura-inspo-page .v3-dialog-copy [data-dialog-work].button:hover{
+  background:var(--paper-2);
+  border-color:var(--paper-2);
+}
+.aura-inspo-page .v3-dialog-copy .lune-reserve-link{
+  min-height:46px;
+  padding:0 18px!important;
+  border:1px solid var(--lacquer)!important;
+  background:var(--lacquer)!important;
+  color:var(--cream)!important;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.aura-inspo-page .v3-dialog-close{
+  right:16px;
+  top:16px;
+  background:rgba(255,250,244,.94);
+  color:var(--ink);
+  border-color:rgba(28,23,21,.18);
+  box-shadow:0 6px 20px rgba(28,23,21,.08);
+}
+
+@media(max-width:980px){
+  .aura-inspo-page .v3-dialog{height:auto;max-height:90vh;overflow:auto}
+  .aura-inspo-page .v3-dialog-grid{height:auto;grid-template-columns:1fr}
+  .aura-inspo-page .v3-dialog-media{height:min(48vh,460px)}
+  .aura-inspo-page .v3-dialog-copy{overflow:visible;padding:28px!important}
+}
+@media(max-width:680px){
+  .aura-inspo-page .inspo-wayfinder .shell{gap:18px;min-height:52px}
+  .aura-inspo-page .inspo-wayfinder a{padding:15px 0 13px}
+  .aura-inspo-page #the-edit .inspo-card{aspect-ratio:.86}
+  .aura-inspo-page .v3-dialog{width:calc(100vw - 18px);max-height:92vh;border-radius:14px}
+  .aura-inspo-page .v3-dialog-media{height:min(43vh,380px)}
+  .aura-inspo-page .v3-dialog-copy{padding:24px 22px 26px!important}
+  .aura-inspo-page .v3-dialog-copy .card-actions{align-items:stretch}
+  .aura-inspo-page .v3-dialog-copy .card-actions>*{width:100%;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .aura-inspo-page #the-edit .inspo-img-wrap img{transition:none}
+}
