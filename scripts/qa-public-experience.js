@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const pages = ['index.html','work.html','inspo.html','favorites.html','standard.html','account.html'];
 const redirectPages = ['references.html'];
-const scripts = ['experience-v4.js','site-motion.js','public-catalog.js'];
+const scripts = ['experience-v4.js','site-motion.js','public-catalog.js','membership-experience.js'];
 const failures = [];
 
 function fail(file, message) { failures.push(`${file}: ${message}`); }
@@ -44,11 +44,20 @@ if (!catalog.includes('lune:taste-changed')) fail('public-catalog.js','live cata
 
 const work = fs.readFileSync('work.html', 'utf8');
 if (!work.includes('data-dialog-save-work')) fail('work.html', 'work detail does not preserve save continuity');
+if (!work.includes('data-dialog-price')) fail('work.html', 'work preview does not disclose price after opening');
 const inspo = fs.readFileSync('inspo.html', 'utf8');
 if (!inspo.includes('data-dialog-share')) fail('inspo.html', 'inspo detail is not shareable');
 if (!inspo.includes('data-dialog-work')) fail('inspo.html', 'inspo does not lead back to finished work');
+if (!inspo.includes('data-dialog-price')) fail('inspo.html', 'inspo preview does not disclose a service price');
+if (!inspo.includes('data-inspo-mood')) fail('inspo.html', 'inspo does not start from an identity-led direction');
 const saved = fs.readFileSync('favorites.html', 'utf8');
 if (!saved.includes('taste-recommendations')) fail('favorites.html', 'Saved has no recommendation recovery surface');
+
+if (catalog.includes('card-badge-price')) fail('public-catalog.js', 'price is shown before the visitor opens a work preview');
+const experience = fs.readFileSync('experience-v4.js', 'utf8');
+if (!experience.includes('syncInspoPrice') || !experience.includes('matchesInspoMood')) fail('experience-v4.js', 'inspiration price disclosure or feeling-led filtering is missing');
+const motion = fs.readFileSync('site-motion.js', 'utf8');
+if (!motion.includes('membership-experience.js')) fail('site-motion.js', 'membership invitation is not available across public discovery pages');
 
 if (failures.length) {
   console.error(`Lune experience QA failed (${failures.length})`);

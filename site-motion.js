@@ -99,6 +99,7 @@
     if (heading) heading.textContent = title;
     if (paragraph) paragraph.textContent = style;
     dialog.dataset.setId = card.dataset.id || '';
+    dialog.dataset.priceKes = card.dataset.priceKes || '';
     dialog.dispatchEvent(new CustomEvent('lune:dialog-item',{bubbles:true,detail:{kind:'work',id:dialog.dataset.setId}}));
     if (!dialog.open) dialog.showModal();
   }
@@ -111,11 +112,11 @@
   });
 
   document.addEventListener('click', event => {
-    const workImage = event.target.closest('.aura-work-page .card-image-wrap');
-    if (!workImage) return;
+    const workTarget = event.target.closest('.aura-work-page .card-image-wrap, .aura-work-page [data-open-work-preview]');
+    if (!workTarget) return;
     event.preventDefault();
     event.stopPropagation();
-    openWorkLightbox(workImage.closest('.gallery-card'));
+    openWorkLightbox(workTarget.closest('.gallery-card'));
   }, true);
 
   if (!reduced && window.matchMedia('(pointer:fine)').matches) {
@@ -166,4 +167,5 @@
   loadScript('taste-engine-v5.js?v=20260908a','data-lune-taste-engine','5');
   loadScript('discovery-experience.js?v=20260908a','data-lune-discovery');
   loadScript('booking-links.js?v=20260908a','data-lune-booking-links');
+  loadScript('membership-experience.js?v=20260908a','data-lune-membership');
 })();

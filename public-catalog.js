@@ -72,11 +72,10 @@
   }
 
   function workCard(item) {
-    return `<article class="gallery-card" data-id="${esc(item.id)}">
+    return `<article class="gallery-card" data-id="${esc(item.id)}" data-price-kes="${Number(item.price || 0)}">
       <div class="card-image-wrap">
         <img src="${esc(item.imageUrl)}" alt="${esc(item.title)}" loading="lazy">
         <span class="card-badge-category">${esc(item.category)}</span>
-        ${item.price ? `<span class="card-badge-price">${money(item.price)}</span>` : ''}
         <div class="card-quick-actions">
           <button class="action-circle-btn" type="button" title="Save" aria-label="Save this set" data-ui-save-work="${esc(item.id)}">♡</button>
           <button class="action-circle-btn" type="button" title="Share" aria-label="Share this set" data-ui-share-work="${esc(item.id)}">↗</button>
@@ -86,7 +85,7 @@
         <h3 class="card-title">${esc(item.title)}</h3>
         <p class="card-style-sub">${esc(item.style)}</p>
         <div class="card-tags-list">${(item.tags || []).slice(0,5).map(tag => `<span class="tag-pill">#${esc(tag)}</span>`).join('')}</div>
-        <div class="card-footer-btns"></div>
+        <div class="card-footer-btns"><button class="card-preview-action" type="button" data-open-work-preview>Preview the set <span aria-hidden="true">→</span></button></div>
       </div>
     </article>`;
   }

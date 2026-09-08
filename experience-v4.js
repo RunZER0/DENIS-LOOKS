@@ -4,6 +4,14 @@
   const WORK_KEY = 'auranails_liked';
   const INSPO_KEY = 'aura_inspo_saved';
   const NUDGE_KEY = 'lune_nudge_seen_v1';
+  let currentInspoMood = 'all';
+  const INSPO_MOODS = {
+    all: { label:'Every direction, in one considered edit.', terms:[] },
+    'put-together': { label:'Clean lines. Polished energy.', terms:['minimal','nude','natural','french','plain','gloss','chic','elegance'] },
+    'softly-expressive': { label:'Light-catching details, kept close.', terms:['ombre','soft','chrome','glow','jelly','aura'] },
+    unmistakable: { label:'For when the details are the point.', terms:['3d','sculpted','stiletto','chrome','marble','nebula','artistry'] },
+    'fresh-again': { label:'A small reset, with intention.', terms:['clean','natural','french','gloss','plain','minimal','pedicure'] }
+  };
   const FALLBACK_INSPO = [
     ['inspo_1','Minimalist Chic','Gel: Natural','inspo1.png.png'],
     ['inspo_2','Nude Elegance','Gel: Natural','inspo2.png.png'],
@@ -41,6 +49,7 @@
   const workById = id => workCatalog().find(item => item.id === id) || null;
   const inspoById = id => inspoCatalog().find(item => item.id === id) || savedInspo().find(item => item.id === id) || null;
   const inspoKey = item => `${item.id}-${slugify(item.style || item.title || 'inspo')}`;
+  const money = value => `KSh ${Number(value || 0).toLocaleString('en-KE')}`;
 
   function toast(message) {
     let el = document.querySelector('.experience-toast');
@@ -167,18 +176,36 @@
     }
   }
 
+  function matchesInspoMood(item) {
+    const mood = INSPO_MOODS[currentInspoMood] || INSPO_MOODS.all;
+    if (!mood.terms.length) return true;
+    const values = [item.title, item.style, item.category, item.finish, item.structure, item.palette, ...(item.tags || [])].join(' ').toLowerCase();
+    return mood.terms.some(term => values.includes(term));
+  }
+
+  function inspoLibraryCard(item) {
+    const normalized = { ...item, img:item.img || item.imageUrl, style:item.style || item.title };
+    return `<article class="inspo-card" data-inspo-id="${normalized.id}"><div class="inspo-img-wrap"><img src="${normalized.img}" alt="${normalized.style}" loading="lazy"></div><div class="inspo-info"><span class="inspo-category">${normalized.category || 'Inspo'}</span><strong class="inspo-style">${normalized.style}</strong><button class="inspo-preview-link" type="button" data-ui-preview-inspo data-inspo-preview-trigger>Preview</button></div></article>`;
+  }
+
   function syncInspoLibrary() {
     const container = document.getElementById('inspo-scroll');
     if (!container) return;
-    const items = inspoCatalog();
-    if (!container.querySelector('.inspo-card')) {
-      container.innerHTML = items.map(item => `<article class="inspo-card" data-inspo-id="${item.id}"><div class="inspo-img-wrap"><img src="${item.img || item.imageUrl}" alt="${item.style || item.title}" loading="lazy"></div><div class="inspo-info"><span class="inspo-category">${item.category || 'Inspo'}</span><strong class="inspo-style">${item.style || item.title}</strong></div></article>`).join('');
+    const items = inspoCatalog().filter(matchesInspoMood);
+    const rendered = [...container.querySelectorAll('.inspo-card')];
+    const renderedIds = rendered.map(card => card.dataset.inspoId).join('|');
+    const expectedIds = items.map(item => item.id).join('|');
+    if (renderedIds !== expectedIds || rendered.some(card => !card.querySelector('[data-ui-preview-inspo]'))) {
+      container.innerHTML = items.length ? items.map(inspoLibraryCard).join('') : '<div class="saved-empty"><strong>Nothing in that direction yet.</strong><span>Try another feeling.</span></div>';
     }
     [...container.querySelectorAll('.inspo-card')].forEach((card, index) => {
       const item = items.find(x => x.id === card.dataset.inspoId) || items[index];
       if (!item) return;
       card.dataset.inspoId = item.id;
       card.dataset.inspoKey = inspoKey(item);
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', `Preview ${item.style || item.title || 'inspiration'}`);
       card.onclick = null;
       card.removeAttribute('onclick');
       let actions = card.querySelector('.inspo-actions');
@@ -192,6 +219,43 @@
       const save = actions.querySelector('[data-ui-save-inspo]');
       if (save) { save.textContent = saved ? '♥' : '♡'; save.classList.toggle('is-saved', saved); }
     });
+  }
+
+  function setInspoMood(mood) {
+    currentInspoMood = INSPO_MOODS[mood] ? mood : 'all';
+    document.querySelectorAll('[data-inspo-mood]').forEach(button => button.classList.toggle('is-active', button.dataset.inspoMood === currentInspoMood));
+    const context = document.querySelector('[data-inspo-rail-context]');
+    if (context) context.textContent = INSPO_MOODS[currentInspoMood].label;
+    syncInspoLibrary();
+  }
+
+  function setDialogPrice(dialog, label, value) {
+    const labelNode = dialog?.querySelector('[data-dialog-price-wrap] span, .preview-price span');
+    const priceNode = dialog?.querySelector('[data-dialog-price]');
+    if (labelNode && label) labelNode.textContent = label;
+    if (priceNode) priceNode.textContent = value;
+  }
+
+  async function syncInspoPrice(dialog, item) {
+    const directPrice = Number(item.priceKes || item.price_kes || item.price || 0);
+    if (directPrice) { setDialogPrice(dialog, 'Set price from', money(directPrice)); return; }
+    const itemId = item.id;
+    dialog.dataset.priceFor = itemId;
+    setDialogPrice(dialog, 'Set price from', 'Loading…');
+    try {
+      const response = await fetch(`/api/booking/item?kind=inspo&id=${encodeURIComponent(itemId)}`, { credentials:'same-origin' });
+      const data = await response.json();
+      const price = Number(data?.item?.priceKes || data?.item?.price_kes || data?.service?.basePriceKes || data?.service?.base_price_kes || 0);
+      if (dialog.dataset.priceFor === itemId) setDialogPrice(dialog, 'Set price from', price ? money(price) : 'Confirmed before you reserve');
+    } catch (_) {
+      if (dialog.dataset.priceFor === itemId) setDialogPrice(dialog, 'Set price from', 'Confirmed before you reserve');
+    }
+  }
+
+  function syncWorkPrice(dialog, itemId) {
+    const item = workById(itemId);
+    const price = Number(item?.priceKes || item?.price_kes || item?.price || dialog?.dataset.priceKes || 0);
+    setDialogPrice(dialog, 'Set price', price ? money(price) : 'Confirmed before you reserve');
   }
 
   function openInspo(item, push = true) {
@@ -208,6 +272,7 @@
     if (title) title.textContent = normalized.style;
     const workLink = dialog.querySelector('[data-dialog-work]');
     if (workLink) workLink.href = `work.html?from=inspo&seed=${encodeURIComponent(normalized.style)}`;
+    syncInspoPrice(dialog, normalized);
     syncInspoDialog();
     if (push) {
       const url = new URL(location.href);
@@ -261,7 +326,7 @@
   function scheduleNudge() {
     if (sessionStorage.getItem(NUDGE_KEY) || document.body.classList.contains('aura-favorites-page')) return;
     const fire = () => {
-      if (sessionStorage.getItem(NUDGE_KEY) || document.querySelector('.experience-nudge')) return;
+      if (sessionStorage.getItem(NUDGE_KEY) || document.querySelector('.experience-nudge, .membership-invite')) return;
       sessionStorage.setItem(NUDGE_KEY, '1');
       const count = savedWorkIds().length + savedInspo().length;
       const nudge = document.createElement('aside');
@@ -319,6 +384,8 @@
       if (librarySave) { event.preventDefault(); event.stopPropagation(); saveInspo(inspoById(librarySave.closest('.inspo-card')?.dataset.inspoId)); return; }
       const libraryShare = event.target.closest('[data-ui-share-inspo]');
       if (libraryShare) { event.preventDefault(); event.stopPropagation(); shareInspo(inspoById(libraryShare.closest('.inspo-card')?.dataset.inspoId)); return; }
+      const previewInspo = event.target.closest('[data-ui-preview-inspo]');
+      if (previewInspo) { event.preventDefault(); event.stopPropagation(); openInspo(inspoById(previewInspo.closest('.inspo-card')?.dataset.inspoId)); return; }
       const card = event.target.closest('.aura-inspo-page .inspo-card');
       if (card) { event.preventDefault(); openInspo(inspoById(card.dataset.inspoId)); return; }
       const dialogSave = event.target.closest('[data-dialog-save]');
@@ -335,6 +402,12 @@
     }, true);
 
     document.querySelectorAll('.v3-dialog-close').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
+    document.querySelectorAll('[data-inspo-mood]').forEach(button => button.addEventListener('click', () => setInspoMood(button.dataset.inspoMood)));
+    document.addEventListener('lune:dialog-item', event => {
+      const dialog = event.target.closest?.('#work-lightbox') || document.getElementById('work-lightbox');
+      const detail = event.detail || {};
+      if (dialog && detail.kind === 'work') syncWorkPrice(dialog, detail.id || dialog.dataset.setId);
+    });
     document.getElementById('inspo-dialog')?.addEventListener('close', () => {
       const url = new URL(location.href);
       if (url.searchParams.has('look')) { url.searchParams.delete('look'); history.replaceState({}, '', url); }

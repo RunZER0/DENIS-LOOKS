@@ -30,13 +30,12 @@
   </header>
 
   <main>
-    <section class="page-hero">
-      <div class="shell page-hero-grid">
-        <div class="page-index hero-copy"><b>02</b> / INSPO</div>
-        <div class="hero-copy">
-          <div class="eyebrow">CURATED DIRECTIONS</div>
-          <h1 class="display">Start with what<br>catches your eye.</h1>
-          <p class="lede">A shape, finish or detail is enough. Save what keeps pulling you back and Lune will learn the pattern without closing off discovery.</p>
+    <section class="page-hero inspo-hero">
+      <div class="shell">
+        <div class="inspo-hero-copy">
+          <div class="eyebrow">INSPO, KEPT PERSONAL</div>
+          <h1 class="display">Wear what<br><em>feels like you.</em></h1>
+          <p class="lede">Start with a feeling. Let the details follow.</p>
         </div>
       </div>
     </section>
@@ -50,31 +49,43 @@
       </div>
     </nav>
 
-    <section class="page-section alt" id="for-you">
+    <section class="page-section alt inspo-feeling-section">
       <div class="shell">
-        <div class="section-heading-row">
-          <div data-reveal><div class="eyebrow">FOR YOU</div></div>
-          <div data-reveal style="--delay:80ms">
-            <h2 class="display" data-personal-inspo-heading>A strong place to start.</h2>
-            <p class="lede" data-personal-inspo-copy>Four different directions to make the first choice easier.</p>
-          </div>
+        <div class="inspo-section-intro" data-reveal>
+          <div class="eyebrow">BEGIN WITH YOU</div>
+          <h2 class="display">How do you want<br>to feel?</h2>
         </div>
-        <div class="personal-inspo-grid" id="personal-inspo-grid">
+        <div class="identity-rail" role="list" aria-label="Choose a feeling to guide your inspiration">
+          <button class="identity-choice is-active" type="button" data-inspo-mood="all" role="listitem"><span>All directions</span><strong>Show me the range.</strong></button>
+          <button class="identity-choice" type="button" data-inspo-mood="put-together" role="listitem"><span>Put together</span><strong>Clean. Considered.</strong></button>
+          <button class="identity-choice" type="button" data-inspo-mood="softly-expressive" role="listitem"><span>Softly expressive</span><strong>Easy to notice.</strong></button>
+          <button class="identity-choice" type="button" data-inspo-mood="unmistakable" role="listitem"><span>Unmistakable</span><strong>Leave an impression.</strong></button>
+          <button class="identity-choice" type="button" data-inspo-mood="fresh-again" role="listitem"><span>Fresh again</span><strong>A small reset.</strong></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-section inspo-rail-section" id="for-you">
+      <div class="shell">
+        <div class="inspo-section-intro" data-reveal>
+          <div class="eyebrow">CHOSEN FOR YOU</div>
+          <h2 class="display" data-personal-inspo-heading>Start where you feel pulled.</h2>
+          <p class="lede" data-personal-inspo-copy>Four directions. One place to begin.</p>
+        </div>
+        <div class="personal-inspo-grid inspo-rail" id="personal-inspo-grid" aria-label="Recommended inspiration">
           <div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div>
         </div>
       </div>
     </section>
 
-    <section class="page-section" id="the-edit">
+    <section class="page-section alt inspo-rail-section" id="the-edit">
       <div class="shell">
-        <div class="section-heading-row">
-          <div data-reveal><div class="eyebrow">THE EDIT</div></div>
-          <div data-reveal style="--delay:80ms">
-            <h2 class="display">Worth a second look.</h2>
-            <p class="lede">Chrome that catches hard light. Soft ombré. Clean French. Sculpted detail. Quiet neutrals and sharper shapes — enough range to discover something without drowning in choice.</p>
-          </div>
+        <div class="inspo-section-intro" data-reveal>
+          <div class="eyebrow">THE EDIT</div>
+          <h2 class="display">Keep looking until<br>it feels right.</h2>
+          <p class="lede" data-inspo-rail-context>Every direction, in one considered edit.</p>
         </div>
-        <div class="inspo-scroll-container" id="inspo-scroll"><div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div></div>
+        <div class="inspo-scroll-container inspo-rail" id="inspo-scroll" aria-label="The Lune inspiration edit"><div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div></div>
       </div>
     </section>
 
@@ -109,11 +120,15 @@
       <div class="v3-dialog-copy">
         <div class="eyebrow" data-dialog-category>INSPO</div>
         <h2 data-dialog-title></h2>
-        <p>Keep the part that pulled you in. Shape, colour and detail can move from there.</p>
+        <p>Bring this feeling into a finished set.</p>
+        <div class="preview-price" data-dialog-price-wrap>
+          <span>Set price from</span>
+          <strong data-dialog-price>—</strong>
+        </div>
         <div class="card-actions">
           <button class="quiet-action" type="button" data-dialog-save>Save this inspo</button>
           <button class="quiet-action" type="button" data-dialog-share>Share link</button>
-          <a class="button" data-dialog-work href="work.html">See finished work <span class="arrow">→</span></a>
+          <a class="quiet-action" data-dialog-work href="work.html">See it finished <span class="arrow">→</span></a>
         </div>
       </div>
     </div>
