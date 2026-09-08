@@ -117,7 +117,7 @@
       return;
     }
     if (!inspo.length || !document.body.classList.contains('aura-favorites-page')) return;
-    let bridge = $('#lune-inspo-catalog-bridge');
+    let bridge = $('#inspo-scroll');
     if (!bridge) {
       bridge = document.createElement('div');
       bridge.id = 'inspo-scroll';
