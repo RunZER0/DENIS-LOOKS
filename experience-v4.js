@@ -249,6 +249,16 @@
     const direction = Number(button.dataset.inspoRailStep) || 1;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     rail.scrollBy({ left: rail.clientWidth * 0.82 * direction, behavior: reducedMotion ? 'auto' : 'smooth' });
+    window.setTimeout(() => syncInspoRailControls(rail), reducedMotion ? 0 : 450);
+  }
+
+  function syncInspoRailControls(rail) {
+    if (!rail) return;
+    const atStart = rail.scrollLeft <= 1;
+    const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1;
+    document.querySelectorAll(`[data-inspo-rail-target="${rail.id}"]`).forEach(button => {
+      button.disabled = Number(button.dataset.inspoRailStep) < 0 ? atStart : atEnd;
+    });
   }
 
   function setDialogPrice(dialog, label, value) {
@@ -379,14 +389,20 @@
     const item = inspoById(id);
     if (!item) return;
     setTimeout(() => {
-      const card = document.querySelector(`.inspo-card[data-inspo-id="${id}"]`);
-      card?.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'center' });
       openInspo(item, false);
     }, 260);
   }
 
   function bind() {
     document.addEventListener('click', event => {
+      const personalRecommendation = event.target.closest('#personal-inspo-grid .taste-card[data-lune-reco]');
+      if (personalRecommendation && !event.target.closest('[data-taste-save], [data-taste-share], [data-taste-dislike]')) {
+        const [, itemId] = personalRecommendation.dataset.luneReco.split(':');
+        event.preventDefault();
+        event.stopPropagation();
+        openInspo(inspoById(itemId));
+        return;
+      }
       const clear = event.target.closest('[data-clear-work-search]');
       if (clear) {
         const input = document.getElementById('gallery-search');
@@ -427,6 +443,10 @@
     document.querySelectorAll('[data-inspo-mood]').forEach(button => button.addEventListener('click', () => setInspoMood(button.dataset.inspoMood)));
     document.querySelector('[data-inspo-feeling-change]')?.addEventListener('click', changeInspoFeeling);
     document.querySelectorAll('[data-inspo-rail-step]').forEach(button => button.addEventListener('click', () => moveInspoRail(button)));
+    document.querySelectorAll('.inspo-rail[id]').forEach(rail => {
+      syncInspoRailControls(rail);
+      rail.addEventListener('scroll', () => syncInspoRailControls(rail), { passive:true });
+    });
     document.addEventListener('lune:dialog-item', event => {
       const dialog = event.target.closest?.('#work-lightbox') || document.getElementById('work-lightbox');
       const detail = event.detail || {};

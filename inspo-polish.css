@@ -242,6 +242,8 @@
 .aura-inspo-page .inspo-rail-heading .inspo-rail-controls{grid-column:3;justify-self:end}
 .aura-inspo-page .inspo-rail-controls button{display:grid;place-items:center;width:42px;height:42px;padding:0;border:1px solid rgba(28,23,21,.25);border-radius:50%;background:transparent;color:var(--ink);font:400 1.25rem/1 var(--font-body);cursor:pointer;transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease}
 .aura-inspo-page .inspo-rail-controls button:hover{background:var(--ink);border-color:var(--ink);color:var(--cream);transform:translateY(-1px)}
+.aura-inspo-page .inspo-rail-controls button:disabled{opacity:.28;cursor:default;transform:none}
+.aura-inspo-page .inspo-rail-controls button:disabled:hover{background:transparent;border-color:rgba(28,23,21,.25);color:var(--ink)}
 .aura-inspo-page .inspo-rail-controls button:focus-visible,.aura-inspo-page .inspo-feeling-summary button:focus-visible{outline:2px solid var(--lacquer);outline-offset:3px}
 .aura-inspo-page .inspo-feeling-section .identity-rail{max-height:360px;opacity:1;transition:max-height .42s ease,opacity .22s ease,margin .42s ease}
 .aura-inspo-page .inspo-feeling-section.is-folded .identity-rail{max-height:0;opacity:0;overflow:hidden;margin:0;border-color:transparent;pointer-events:none}

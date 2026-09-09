@@ -17,6 +17,18 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   const token = () => crypto.randomBytes(32).toString('base64url');
   const json = value => JSON.stringify(value || {});
   const nowIso = () => new Date().toISOString();
+  const emailEscape = value => String(value || '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[character]);
+  const appointmentTime = value => {
+    if (!value) return '';
+    try { return new Intl.DateTimeFormat('en-KE', { dateStyle:'medium', timeStyle:'short', timeZone:'Africa/Nairobi' }).format(new Date(value)); }
+    catch (_) { return ''; }
+  };
+  const confirmationEmail = order => {
+    const name = emailEscape(order.customer_name || 'there');
+    const details = [appointmentTime(order.scheduled_for), order.location_name, order.location_address].filter(Boolean).map(emailEscape);
+    const directions = order.google_maps_url ? `<p><a href="${emailEscape(order.google_maps_url)}">Directions</a></p>` : '';
+    return `<p>Hi ${name}, you’re confirmed.</p>${details.length ? `<p>${details.join('<br>')}</p>` : ''}${directions}<p>Your set is saved for you. See you soon.</p>`;
+  };
 
   function asyncRoute(fn) {
     return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -232,10 +244,11 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       }
       await client.query('COMMIT');
       await allocator.recordEvent(order.id,'payment_confirmed',payment.order_status,'confirmed',{reference},'system','paystack');
+      const emailOrder = await orderRow(order.id).catch(() => order);
       notifier.customer({
-        to:order.customer_email,
-        subject:'Your Lune appointment is confirmed',
-        html:`<p>${order.customer_name ? `${order.customer_name}, ` : ''}your Lune appointment is confirmed.</p><p>Open your order in Lune for the station, directions and appointment details.</p>`
+        to:emailOrder.customer_email,
+        subject:'You’re confirmed with Lune',
+        html:confirmationEmail(emailOrder)
       }).catch(() => {});
       return order;
     } catch (err) {
