@@ -62,15 +62,24 @@
           <button class="identity-choice" type="button" data-inspo-mood="unmistakable" role="listitem"><span>Unmistakable</span><strong>Leave an impression.</strong></button>
           <button class="identity-choice" type="button" data-inspo-mood="fresh-again" role="listitem"><span>Fresh again</span><strong>A small reset.</strong></button>
         </div>
+        <div class="inspo-feeling-summary" data-inspo-feeling-summary hidden>
+          <button type="button" data-inspo-feeling-change aria-label="Change how you want to feel">
+            <span data-inspo-selected-label></span>
+            <strong>Change</strong>
+          </button>
+          <span class="inspo-hand-arrow" aria-hidden="true">↓</span>
+        </div>
       </div>
     </section>
 
     <section class="page-section inspo-rail-section" id="for-you">
       <div class="shell">
-        <div class="inspo-section-intro" data-reveal>
+        <div class="inspo-rail-heading" data-reveal>
           <div class="eyebrow">CHOSEN FOR YOU</div>
-          <h2 class="display" data-personal-inspo-heading>Start where you feel pulled.</h2>
-          <p class="lede" data-personal-inspo-copy>Four directions. One place to begin.</p>
+          <div class="inspo-rail-controls" aria-label="Recommended inspiration controls">
+            <button type="button" data-inspo-rail-step="-1" data-inspo-rail-target="personal-inspo-grid" aria-label="See previous recommendations">←</button>
+            <button type="button" data-inspo-rail-step="1" data-inspo-rail-target="personal-inspo-grid" aria-label="See more recommendations">→</button>
+          </div>
         </div>
         <div class="personal-inspo-grid inspo-rail" id="personal-inspo-grid" aria-label="Recommended inspiration">
           <div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div>
@@ -80,10 +89,12 @@
 
     <section class="page-section alt inspo-rail-section" id="the-edit">
       <div class="shell">
-        <div class="inspo-section-intro" data-reveal>
+        <div class="inspo-rail-heading" data-reveal>
           <div class="eyebrow">THE EDIT</div>
-          <h2 class="display">Keep looking until<br>it feels right.</h2>
-          <p class="lede" data-inspo-rail-context>Every direction, in one considered edit.</p>
+          <div class="inspo-rail-controls" aria-label="Inspiration edit controls">
+            <button type="button" data-inspo-rail-step="-1" data-inspo-rail-target="inspo-scroll" aria-label="See previous inspiration">←</button>
+            <button type="button" data-inspo-rail-step="1" data-inspo-rail-target="inspo-scroll" aria-label="See more inspiration">→</button>
+          </div>
         </div>
         <div class="inspo-scroll-container inspo-rail" id="inspo-scroll" aria-label="The Lune inspiration edit"><div class="taste-skeleton"></div><div class="taste-skeleton"></div><div class="taste-skeleton"></div></div>
       </div>

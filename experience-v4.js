@@ -224,9 +224,31 @@
   function setInspoMood(mood) {
     currentInspoMood = INSPO_MOODS[mood] ? mood : 'all';
     document.querySelectorAll('[data-inspo-mood]').forEach(button => button.classList.toggle('is-active', button.dataset.inspoMood === currentInspoMood));
-    const context = document.querySelector('[data-inspo-rail-context]');
-    if (context) context.textContent = INSPO_MOODS[currentInspoMood].label;
+    const feelingSection = document.querySelector('.inspo-feeling-section');
+    const summary = document.querySelector('[data-inspo-feeling-summary]');
+    const selectedLabel = document.querySelector('[data-inspo-selected-label]');
+    const selectedButton = document.querySelector(`[data-inspo-mood="${currentInspoMood}"]`);
+    const isChosen = currentInspoMood !== 'all';
+    if (feelingSection) feelingSection.classList.toggle('is-folded', isChosen);
+    if (summary) summary.hidden = !isChosen;
+    if (selectedLabel && selectedButton) selectedLabel.textContent = selectedButton.querySelector('span')?.textContent || 'Your direction';
     syncInspoLibrary();
+  }
+
+  function changeInspoFeeling() {
+    const feelingSection = document.querySelector('.inspo-feeling-section');
+    const summary = document.querySelector('[data-inspo-feeling-summary]');
+    if (feelingSection) feelingSection.classList.remove('is-folded');
+    if (summary) summary.hidden = true;
+    document.querySelector(`[data-inspo-mood="${currentInspoMood}"]`)?.focus();
+  }
+
+  function moveInspoRail(button) {
+    const rail = document.getElementById(button.dataset.inspoRailTarget);
+    if (!rail) return;
+    const direction = Number(button.dataset.inspoRailStep) || 1;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    rail.scrollBy({ left: rail.clientWidth * 0.82 * direction, behavior: reducedMotion ? 'auto' : 'smooth' });
   }
 
   function setDialogPrice(dialog, label, value) {
@@ -403,6 +425,8 @@
 
     document.querySelectorAll('.v3-dialog-close').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
     document.querySelectorAll('[data-inspo-mood]').forEach(button => button.addEventListener('click', () => setInspoMood(button.dataset.inspoMood)));
+    document.querySelector('[data-inspo-feeling-change]')?.addEventListener('click', changeInspoFeeling);
+    document.querySelectorAll('[data-inspo-rail-step]').forEach(button => button.addEventListener('click', () => moveInspoRail(button)));
     document.addEventListener('lune:dialog-item', event => {
       const dialog = event.target.closest?.('#work-lightbox') || document.getElementById('work-lightbox');
       const detail = event.detail || {};
