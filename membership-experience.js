@@ -30,11 +30,17 @@
     invite.innerHTML = '<button class="membership-dismiss" type="button" aria-label="Dismiss">×</button><small>LUNE CIRCLE</small><h2>Your signature deserves a place to return to.</h2><p>Member pricing. Priority access. A closer edit.</p><button type="button" data-open-circle>See Circle <span aria-hidden="true">→</span></button>';
     document.body.appendChild(invite);
     invite.querySelector('.membership-dismiss')?.addEventListener('click', () => { dismissForAWhile(); invite.remove(); });
-    invite.querySelector('[data-open-circle]')?.addEventListener('click', () => { const dialog = ensureDialog(); if (!dialog.open) dialog.showModal(); });
     requestAnimationFrame(() => invite.classList.add('show'));
   }
 
   function boot() {
+    document.addEventListener('click', event => {
+      const trigger = event.target.closest('[data-open-circle]');
+      if (!trigger) return;
+      event.preventDefault();
+      const dialog = ensureDialog();
+      if (!dialog.open) dialog.showModal();
+    });
     if (!isEligible() || wasDismissed()) return;
     let shown = false;
     const reveal = () => {
