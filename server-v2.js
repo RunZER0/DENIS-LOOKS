@@ -23,7 +23,7 @@ const pool = DATABASE_URL ? new Pool({
 app.disable('x-powered-by');
 app.set('trust proxy',1);
 app.use(express.json({
-  limit:'512kb',
+  limit:'4mb',
   verify:(req,_res,buf)=>{ if(req.originalUrl === '/api/paystack/webhook') req.rawBody = Buffer.from(buf); }
 }));
 
@@ -219,8 +219,12 @@ app.get('/api/state',requireDb,asyncRoute(async(req,res)=>{
   res.json({user:publicUser(user),visitor:{id:visitor.anonymous_key},savedItems:savedResult.rows,tasteEvents,impressions:impressionResult.rows});
 }));
 
-app.get('/api/catalog/work',requireDb,asyncRoute(async(_req,res)=>{const {rows}=await pool.query('SELECT * FROM lune_work_items WHERE active=true ORDER BY popularity_score DESC,title');res.json({items:rows});}));
-app.get('/api/catalog/inspo',requireDb,asyncRoute(async(_req,res)=>{const {rows}=await pool.query('SELECT * FROM lune_inspo_items WHERE active=true ORDER BY editorial_score DESC,title');res.json({items:rows});}));
+app.get('/api/catalog/work',requireDb,asyncRoute(async(_req,res)=>{const {rows}=await pool.query(`SELECT w.*,COALESCE(proof.review_count,0)::int AS review_count,COALESCE(proof.booking_count,0)::int AS booking_count,proof.average_rating
+  FROM lune_work_items w LEFT JOIN (SELECT item_kind,item_id,count(*) FILTER (WHERE status IN ('completed','reviewed'))::int AS booking_count,count(r.id)::int AS review_count,round(avg(r.rating)::numeric,1) AS average_rating FROM lune_orders o LEFT JOIN lune_reviews r ON r.order_id=o.id GROUP BY item_kind,item_id) proof ON proof.item_kind='work' AND proof.item_id=w.id
+  WHERE w.active=true ORDER BY w.popularity_score DESC,w.title`);res.json({items:rows});}));
+app.get('/api/catalog/inspo',requireDb,asyncRoute(async(_req,res)=>{const {rows}=await pool.query(`SELECT i.*,COALESCE(proof.review_count,0)::int AS review_count,COALESCE(proof.booking_count,0)::int AS booking_count,proof.average_rating
+  FROM lune_inspo_items i LEFT JOIN (SELECT item_kind,item_id,count(*) FILTER (WHERE status IN ('completed','reviewed'))::int AS booking_count,count(r.id)::int AS review_count,round(avg(r.rating)::numeric,1) AS average_rating FROM lune_orders o LEFT JOIN lune_reviews r ON r.order_id=o.id GROUP BY item_kind,item_id) proof ON proof.item_kind='inspo' AND proof.item_id=i.id
+  WHERE i.active=true ORDER BY i.editorial_score DESC,i.title`);res.json({items:rows});}));
 
 app.post('/api/orders/drafts',requireDb,asyncRoute(async(req,res)=>{
   const user=await sessionUser(req),visitor=await ensureVisitor(req.body?.visitorId,user?.id||null),orderId=id('ord');

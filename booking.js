@@ -56,7 +56,7 @@
     const area=chosen?chosen.name:(currentArea()||'Not chosen');
     const basePrice=state.item&&state.service ? (state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)) : 0;
     const price=basePrice+(experience()==='select'?500:0);
-    target.innerHTML=`<div class="summary-row"><span>When</span><strong>${esc(when)}</strong></div><div class="summary-row"><span>Experience</span><strong>${esc(labels[experience()]||'Closest fit')}</strong></div><div class="summary-row"><span>${chosen?'Station':'Area'}</span><strong>${esc(area)}</strong></div><div class="summary-row"><span>Estimate</span><strong>${price?money(price):'—'}</strong></div>`;
+    const party=Number(form.elements.groupSize?.value||1);target.innerHTML=`<div class="summary-row"><span>When</span><strong>${esc(when)}</strong></div><div class="summary-row"><span>Experience</span><strong>${esc(labels[experience()]||'Closest fit')}</strong></div><div class="summary-row"><span>${chosen?'Station':'Area'}</span><strong>${esc(area)}</strong></div>${party>1?`<div class="summary-row"><span>Coming together</span><strong>${party} people</strong></div>`:''}<div class="summary-row"><span>Estimate</span><strong>${price?money(price):'—'}</strong></div>`;
   }
 
   async function chooseFallback(){
@@ -152,7 +152,7 @@
       visitorId:visitorId(),itemKind:state.itemKind,itemId:state.itemId,scheduledFor:scheduledIso(),experiencePreference:experience(),
       preferredLocationId,forcePreferredLocation:forcePreferred,customerName:form.elements.customerName.value.trim(),customerEmail:email,customerPhone:phone,
       area:currentArea(),latitude:form.elements.latitude.value?Number(form.elements.latitude.value):null,longitude:form.elements.longitude.value?Number(form.elements.longitude.value):null,
-      offerCode:form.elements.offerCode?.value||null,sourceOrderId:state.sourceOrderId,source:params.get('source')||params.get('ref')||'booking',referralCode:params.get('referral')||null
+      offerCode:form.elements.offerCode?.value||null,partySize:Math.max(1,Math.min(4,Number(form.elements.groupSize?.value||1))),sourceOrderId:state.sourceOrderId,source:params.get('source')||params.get('ref')||'booking',referralCode:params.get('referral')||null
     };
     try{
       if(window.LuneTaste?.track)window.LuneTaste.track(state.sourceOrderId?'reorder':'book',{...state.item,kind:state.itemKind,id:state.itemId},{surface:'booking'});
@@ -173,6 +173,11 @@
     if(window.LuneData?.ready)await window.LuneData.ready.catch(()=>{});const user=window.LuneData?.user;if(user){form.elements.customerName.value=user.displayName||'';form.elements.customerEmail.value=user.email||'';form.elements.customerPhone.value=user.phone||'';}
   }
 
+  function groupNudge(){
+    if(params.get('group')||sessionStorage.getItem('lune_group_nudge'))return;
+    sessionStorage.setItem('lune_group_nudge','1');const nudge=document.createElement('aside');nudge.className='experience-nudge';nudge.innerHTML='<button class="experience-nudge-close" aria-label="Dismiss">×</button><small>COMING TOGETHER?</small><h3>The experience is better in person.</h3><p>Bring a friend and let Lune coordinate the time with the station.</p><button class="text-link" type="button">Plan it together <span class="arrow">→</span></button>';document.body.appendChild(nudge);nudge.querySelector('.experience-nudge-close').addEventListener('click',()=>nudge.remove());nudge.querySelector('.text-link').addEventListener('click',()=>{const group=form.elements.groupSize;if(group){group.value='2';group.dispatchEvent(new Event('change'));}nudge.remove();});requestAnimationFrame(()=>nudge.classList.add('show'));
+  }
+
   function wire(){
     $$('[data-next]').forEach(btn=>btn.addEventListener('click',()=>{if(validateStep(state.step)){if(state.step===3)finalSummary();setStep(state.step+1);}}));
     $$('[data-back]').forEach(btn=>btn.addEventListener('click',()=>setStep(state.step-1)));
@@ -185,7 +190,7 @@
 
   async function boot(){
     const today=new Date();form.elements.date.min=today.toISOString().slice(0,10);form.elements.date.value=params.get('date')||'';form.elements.time.value=params.get('time')||'';
-    wire();await prefillIdentity();await loadReorder().catch(()=>false);await loadItem();await continuity();renderSummary();
+    wire();await prefillIdentity();await loadReorder().catch(()=>false);await loadItem();await continuity();renderSummary();setTimeout(groupNudge,2600);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

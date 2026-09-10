@@ -9,9 +9,13 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   const paystack = createPaystack();
   const notifier = createNotifier({ pool, id });
   const allocator = createAllocator({ pool, id, notifier });
-  const adminEmails = new Set(String(process.env.LUNE_ADMIN_EMAILS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+  const adminEmails = new Set(['www.valdaceai@gmail.com', ...String(process.env.LUNE_ADMIN_EMAILS || '').split(',')].map(x => x.trim().toLowerCase()).filter(Boolean));
   const publicBase = () => String(process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
   const safe = (value, max = 240) => String(value || '').trim().slice(0, max);
+  const imageDataUrl = value => {
+    const image = String(value || '');
+    return /^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=\s]+$/i.test(image) && Buffer.byteLength(image, 'utf8') <= 3 * 1024 * 1024 ? image : null;
+  };
   const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim().toLowerCase());
   const hash = value => crypto.createHash('sha256').update(String(value)).digest('hex');
   const token = () => crypto.randomBytes(32).toString('base64url');
@@ -125,7 +129,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       pool.query(`SELECT id,reference,amount_kes,currency,status,paid_at,initialized_at FROM lune_payments WHERE order_id=$1 ORDER BY initialized_at DESC LIMIT 1`, [order.id]),
       pool.query(`SELECT id,status,offered_at,expires_at,responded_at,location_id FROM lune_order_allocations WHERE order_id=$1 ORDER BY offered_at DESC LIMIT 1`, [order.id]),
       pool.query(`SELECT event_type,from_status,to_status,metadata,created_at FROM lune_order_events WHERE order_id=$1 ORDER BY created_at ASC`, [order.id]),
-      pool.query(`SELECT rating,comment,created_at FROM lune_reviews WHERE order_id=$1 LIMIT 1`, [order.id])
+      pool.query(`SELECT rating,comment,photo_data_url,photo_caption,created_at FROM lune_reviews WHERE order_id=$1 LIMIT 1`, [order.id])
     ]);
     const directions = order.google_maps_url || (order.location_address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.location_address)}` : null);
     return {
@@ -142,6 +146,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       subtotalKes:Number(order.subtotal_kes ?? order.amount_kes ?? 0),
       discountKes:Number(order.discount_kes || 0),
       amountKes:Number(order.amount_kes || 0),
+      partySize:Number(order.party_size || 1),
       currency:order.currency || 'KES',
       requestedArea:order.requested_area,
       location:order.allocated_location_id ? {
@@ -359,12 +364,12 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     await pool.query(`INSERT INTO lune_orders
       (id,user_id,visitor_id,item_kind,item_id,item_snapshot,preferred_location_id,experience_preference,scheduled_for,status,
        amount_kes,payment_status,customer_name,customer_email,customer_phone,requested_area,requested_latitude,requested_longitude,
-       duration_minutes,service_code,force_preferred_location,subtotal_kes,discount_kes,experience_fee_kes,currency,access_token_hash,source,referral_code)
-      VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,'matching',$10,'unpaid',$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,'KES',$23,$24,$25)`,
+       duration_minutes,service_code,force_preferred_location,subtotal_kes,discount_kes,experience_fee_kes,currency,access_token_hash,source,referral_code,party_size)
+      VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,'matching',$10,'unpaid',$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,'KES',$23,$24,$25,$26)`,
       [orderId,user?.id || null,visitor.id,itemKind,itemId,json(snapshot),preferredLocationId,experience,when.toISOString(),amount,
        customerName || null,customerEmail,customerPhone,safe(req.body?.area,120) || null,
        req.body?.latitude == null ? null : Number(req.body.latitude),req.body?.longitude == null ? null : Number(req.body.longitude),
-       Number(service.duration_minutes),service.code,forcePreferred,subtotal,discount,experienceFee,hash(accessToken),source,safe(req.body?.referralCode,80) || null]);
+       Number(service.duration_minutes),service.code,forcePreferred,subtotal,discount,experienceFee,hash(accessToken),source,safe(req.body?.referralCode,80) || null,Math.max(1,Math.min(6,Number(req.body?.partySize || 1)))]);
     await allocator.recordEvent(orderId,'order_created',null,'matching',{experience,serviceCode:service.code,offerCode:offerResult.offer?.code || null},user ? 'user':'visitor',user?.id || visitor.id);
     const allocation = await allocator.allocateOrder(orderId);
     if (offerResult.offer) {
@@ -394,6 +399,18 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       experiencePreference:order.allocated_location_id ? 'same' : (order.experience_preference || 'closest'),
       sourceOrderId:order.id
     }});
+  }));
+
+  app.get('/api/orders/:id/evolve', requireDb, asyncRoute(async (req,res) => {
+    const order = await orderRow(req.params.id);
+    if (!order) return res.status(404).json({ error:'order_not_found' });
+    const access = await canAccessOrder(req,order);
+    if (!access.allowed) return res.status(403).json({ error:'order_access_denied' });
+    const kind = order.item_kind === 'work' ? 'work' : 'inspo';
+    const table = kind === 'work' ? 'lune_work_items' : 'lune_inspo_items';
+    const tags = Array.isArray(order.item_snapshot?.tags) ? order.item_snapshot.tags.slice(0,12) : [];
+    const { rows } = await pool.query(`SELECT id,title,category,image_url,tags FROM ${table} WHERE active=true AND id<>$1 ORDER BY CASE WHEN tags && $2::text[] THEN 0 ELSE 1 END,random() LIMIT 4`,[order.item_id,tags]);
+    res.json({ origin:order.item_snapshot,kind,items:rows });
   }));
 
   app.post('/api/orders/:id/payment', requireDb, asyncRoute(async (req,res) => {
@@ -478,9 +495,11 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error:'rating_required' });
     const user = await fullUser(req);
     const visitor = await visitorForRequest(req,user);
-    await pool.query(`INSERT INTO lune_reviews (id,order_id,user_id,visitor_id,rating,comment)
-      VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (order_id) DO UPDATE SET rating=EXCLUDED.rating,comment=EXCLUDED.comment`,
-      [id('rev'),order.id,user?.id || null,user ? null : visitor?.id || null,rating,safe(req.body?.comment,1200) || null]);
+    const photo = imageDataUrl(req.body?.photoDataUrl);
+    if (req.body?.photoDataUrl && !photo) return res.status(400).json({ error:'photo_too_large_or_invalid' });
+    await pool.query(`INSERT INTO lune_reviews (id,order_id,user_id,visitor_id,rating,comment,photo_data_url,photo_caption)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (order_id) DO UPDATE SET rating=EXCLUDED.rating,comment=EXCLUDED.comment,photo_data_url=COALESCE(EXCLUDED.photo_data_url,lune_reviews.photo_data_url),photo_caption=COALESCE(EXCLUDED.photo_caption,lune_reviews.photo_caption)`,
+      [id('rev'),order.id,user?.id || null,user ? null : visitor?.id || null,rating,safe(req.body?.comment,1200) || null,photo,safe(req.body?.photoCaption,240) || null]);
     await pool.query(`UPDATE lune_orders SET status='reviewed',updated_at=now() WHERE id=$1`,[order.id]);
     if (order.allocated_location_id) {
       await pool.query(`UPDATE lune_partner_locations l SET quality_score=sub.score,updated_at=now() FROM (
@@ -489,6 +508,40 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       ) sub WHERE l.id=sub.allocated_location_id`,[order.allocated_location_id]);
     }
     await allocator.recordEvent(order.id,'reviewed',order.status,'reviewed',{rating},user?'user':'visitor',user?.id || visitor?.id || null);
+    res.json({ ok:true });
+  }));
+
+  app.post('/api/circle-picks', requireDb, asyncRoute(async (req,res) => {
+    const user = await fullUser(req);
+    const visitor = await visitorForRequest(req,user);
+    if (!user && !visitor) return res.status(400).json({ error:'identity_required' });
+    const choices = Array.isArray(req.body?.choices) ? req.body.choices.slice(0,4).map(choice => ({
+      id:safe(choice?.id,160), kind:['work','inspo'].includes(choice?.kind) ? choice.kind : 'inspo',
+      title:safe(choice?.title,160), imageUrl:safe(choice?.imageUrl,800)
+    })).filter(choice => choice.id && choice.title && choice.imageUrl) : [];
+    if (choices.length < 2) return res.status(400).json({ error:'choose_two_to_four_sets' });
+    const accessToken = token(), pickId = id('pick');
+    await pool.query(`INSERT INTO lune_pick_sessions(id,owner_user_id,owner_visitor_id,choices,access_token_hash,expires_at)
+      VALUES($1,$2,$3,$4::jsonb,$5,now()+interval '14 days')`,[pickId,user?.id || null,user ? null : visitor.id,json(choices),hash(accessToken)]);
+    res.status(201).json({ id:pickId,token:accessToken,url:`${requestBase(req)}/circle-pick.html?pick=${encodeURIComponent(pickId)}&token=${encodeURIComponent(accessToken)}` });
+  }));
+
+  app.get('/api/circle-picks/:id', requireDb, asyncRoute(async (req,res) => {
+    const accessToken = safe(req.query?.token,200);
+    const { rows } = await pool.query(`SELECT p.id,p.choices,p.expires_at,COALESCE(json_object_agg(v.choice_id,v.total) FILTER (WHERE v.choice_id IS NOT NULL),'{}'::json) AS votes
+      FROM lune_pick_sessions p LEFT JOIN (SELECT session_id,choice_id,count(*)::int AS total FROM lune_pick_votes GROUP BY session_id,choice_id) v ON v.session_id=p.id
+      WHERE p.id=$1 AND p.access_token_hash=$2 AND p.expires_at>now() GROUP BY p.id`,[req.params.id,hash(accessToken)]);
+    if (!rows[0]) return res.status(404).json({ error:'pick_not_found' });
+    res.json({ pick:{ id:rows[0].id,choices:rows[0].choices,votes:rows[0].votes,expiresAt:rows[0].expires_at } });
+  }));
+
+  app.post('/api/circle-picks/:id/vote', requireDb, asyncRoute(async (req,res) => {
+    const accessToken = safe(req.body?.token,200), choiceId = safe(req.body?.choiceId,160), voterKey = safe(req.body?.voterKey,200);
+    if (!accessToken || !choiceId || !voterKey) return res.status(400).json({ error:'vote_details_required' });
+    const { rows } = await pool.query('SELECT choices FROM lune_pick_sessions WHERE id=$1 AND access_token_hash=$2 AND expires_at>now() LIMIT 1',[req.params.id,hash(accessToken)]);
+    if (!rows[0] || !Array.isArray(rows[0].choices) || !rows[0].choices.some(choice => choice.id === choiceId)) return res.status(404).json({ error:'pick_not_found' });
+    await pool.query(`INSERT INTO lune_pick_votes(id,session_id,voter_key_hash,choice_id) VALUES($1,$2,$3,$4)
+      ON CONFLICT(session_id,voter_key_hash) DO UPDATE SET choice_id=EXCLUDED.choice_id,created_at=now()`,[id('vote'),req.params.id,hash(voterKey),choiceId]);
     res.json({ ok:true });
   }));
 
@@ -570,7 +623,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     const ctx = await requirePartner(req);
     const partnerIds = ctx.memberships.map(m => m.partner_id);
     if (!partnerIds.length) return res.json({ orders:[] });
-    const { rows } = await pool.query(`SELECT o.id,o.item_snapshot,o.status,o.payment_status,o.scheduled_for,o.duration_minutes,o.amount_kes,
+    const { rows } = await pool.query(`SELECT o.id,o.item_snapshot,o.status,o.payment_status,o.scheduled_for,o.duration_minutes,o.amount_kes,o.party_size,
       o.customer_name,o.customer_email,o.customer_phone,o.allocated_location_id,o.allocated_technician_id,
       l.name AS location_name,p.id AS partner_id,p.commission_bps,
       COALESCE(pp.net_kes,round(o.amount_kes*(10000-p.commission_bps)/10000.0)::int) AS partner_earning_kes
@@ -623,8 +676,13 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       in_service:['completed']
     };
     if (!(allowed[order.status] || []).includes(next)) return res.status(409).json({ error:'invalid_status_transition' });
-    await pool.query(`UPDATE lune_orders SET status=$2,completed_at=CASE WHEN $2='completed' THEN now() ELSE completed_at END,cancelled_at=CASE WHEN $2='cancelled' THEN now() ELSE cancelled_at END,updated_at=now() WHERE id=$1`,[order.id,next]);
+    const reviewToken = next === 'completed' ? token() : null;
+    await pool.query(`UPDATE lune_orders SET status=$2,completed_at=CASE WHEN $2='completed' THEN now() ELSE completed_at END,cancelled_at=CASE WHEN $2='cancelled' THEN now() ELSE cancelled_at END,access_token_hash=COALESCE($3,access_token_hash),updated_at=now() WHERE id=$1`,[order.id,next,reviewToken ? hash(reviewToken) : null]);
     if (next === 'completed') await pool.query(`UPDATE lune_partner_payouts SET status='payable',payable_at=now(),updated_at=now() WHERE order_id=$1 AND status='held'`,[order.id]);
+    if (next === 'completed' && validEmail(order.customer_email)) {
+      const reviewLink = `${requestBase(req)}/order.html?id=${encodeURIComponent(order.id)}&token=${encodeURIComponent(reviewToken)}`;
+      notifier.customer({ to:order.customer_email, subject:'How did your set turn out?', html:`<p>Hi ${emailEscape(order.customer_name || 'there')}, your Lune set is finished.</p><p>We would genuinely love to see how it turned out — a photo, a few words, or simply how it made you feel.</p><p><a href="${emailEscape(reviewLink)}">Show Lune your set →</a></p>` }).catch(() => {});
+    }
     await allocator.recordEvent(order.id,'partner_status',order.status,next,{},'partner',ctx.user.id);
     res.json({ ok:true,status:next });
   }));
@@ -664,6 +722,29 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     if (!rows[0]) return res.status(404).json({ error:'application_not_found' });
     await logAdmin(ctx.user.id,'partner.application.review','partner_application',rows[0].id,{status});
     res.json({ application:rows[0] });
+  }));
+
+  app.post('/api/admin/catalog/:kind', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const kind = req.params.kind === 'work' ? 'work' : req.params.kind === 'inspo' ? 'inspo' : null;
+    if (!kind) return res.status(400).json({ error:'catalog_kind_required' });
+    const title = safe(req.body?.title,160), imageUrl = imageDataUrl(req.body?.imageDataUrl) || safe(req.body?.imageUrl,1200);
+    if (!title || !imageUrl) return res.status(400).json({ error:'title_and_image_required' });
+    const slug = safe(req.body?.slug,180) || `${title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}-${Date.now().toString(36)}`;
+    const itemId = id(kind === 'work' ? 'set' : 'inspo'), category = safe(req.body?.category,120), tags = Array.isArray(req.body?.tags) ? req.body.tags.map(tag => safe(tag,60)).filter(Boolean).slice(0,12) : [];
+    if (kind === 'work') await pool.query(`INSERT INTO lune_work_items(id,slug,title,category,style,description,image_url,price_kes,tags,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,true)`,[itemId,slug,title,category,safe(req.body?.style,180),safe(req.body?.description,1000),imageUrl,Math.max(0,Number(req.body?.priceKes||0)),tags]);
+    else await pool.query(`INSERT INTO lune_inspo_items(id,slug,title,category,image_url,shape,length,finish,palette,structure,tags,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true)`,[itemId,slug,title,category,imageUrl,safe(req.body?.shape,80)||null,safe(req.body?.length,80)||null,safe(req.body?.finish,120)||null,safe(req.body?.palette,120)||null,safe(req.body?.structure,120)||null,tags]);
+    await logAdmin(ctx.user.id,'catalog.create',kind,itemId,{title});
+    res.status(201).json({ id:itemId,slug });
+  }));
+
+  app.patch('/api/admin/catalog/:kind/:id', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req), kind = req.params.kind === 'work' ? 'work' : req.params.kind === 'inspo' ? 'inspo' : null;
+    if (!kind) return res.status(400).json({ error:'catalog_kind_required' });
+    const table = kind === 'work' ? 'lune_work_items' : 'lune_inspo_items';
+    await pool.query(`UPDATE ${table} SET active=$2,updated_at=now() WHERE id=$1`,[req.params.id,Boolean(req.body?.active)]);
+    await logAdmin(ctx.user.id,'catalog.visibility',kind,req.params.id,{active:Boolean(req.body?.active)});
+    res.json({ ok:true });
   }));
 
   app.post('/api/admin/partners', requireDb, asyncRoute(async (req,res) => {

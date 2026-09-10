@@ -185,7 +185,7 @@
 
   function inspoLibraryCard(item) {
     const normalized = { ...item, img:item.img || item.imageUrl, style:item.style || item.title };
-    return `<article class="inspo-card" data-inspo-id="${normalized.id}"><div class="inspo-img-wrap"><img src="${normalized.img}" alt="${normalized.style}" loading="lazy"></div><div class="inspo-info"><span class="inspo-category">${normalized.category || 'Inspo'}</span><strong class="inspo-style">${normalized.style}</strong><button class="inspo-preview-link" type="button" data-ui-preview-inspo data-inspo-preview-trigger>Preview</button></div></article>`;
+    const reviews=Number(normalized.reviewCount||normalized.review_count||0),rating=Number(normalized.averageRating||normalized.average_rating||0);return `<article class="inspo-card" data-inspo-id="${normalized.id}"><div class="inspo-img-wrap"><img src="${normalized.img}" alt="${normalized.style}" loading="lazy"></div><div class="inspo-info"><span class="inspo-category">${normalized.category || 'Inspo'}</span><strong class="inspo-style">${normalized.style}</strong>${reviews?`<small class="card-proof">Reviewed ${reviews} time${reviews===1?'':'s'}${rating?` · ${rating}/5`:''}</small>`:''}<button class="inspo-preview-link" type="button" data-ui-preview-inspo data-inspo-preview-trigger>Preview</button></div></article>`;
   }
 
   function syncInspoLibrary() {

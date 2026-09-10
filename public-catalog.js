@@ -25,6 +25,9 @@
       tags: Array.isArray(row.tags) ? row.tags : [],
       likes: Number(row.popularity_score ?? row.likes ?? 0),
       serviceCode: row.service_code || row.serviceCode || null,
+      reviewCount: Number(row.review_count ?? row.reviewCount ?? 0),
+      bookingCount: Number(row.booking_count ?? row.bookingCount ?? 0),
+      averageRating: Number(row.average_rating ?? row.averageRating ?? 0),
       kind: 'work'
     };
   }
@@ -46,6 +49,9 @@
       tags: Array.isArray(row.tags) ? row.tags : [],
       curatedScore: Number(row.editorial_score ?? row.curatedScore ?? 0.5),
       serviceCode: row.service_code || row.serviceCode || null,
+      reviewCount: Number(row.review_count ?? row.reviewCount ?? 0),
+      bookingCount: Number(row.booking_count ?? row.bookingCount ?? 0),
+      averageRating: Number(row.average_rating ?? row.averageRating ?? 0),
       kind: 'inspo'
     };
   }
@@ -83,7 +89,7 @@
       </div>
       <div class="card-content">
         <h3 class="card-title">${esc(item.title)}</h3>
-        <p class="card-style-sub">${esc(item.style)}</p>
+        <p class="card-style-sub">${esc(item.style)}</p>${item.reviewCount ? `<p class="card-proof">${item.reviewCount} ${item.reviewCount===1?'Lune review':'Lune reviews'}${item.averageRating ? ` · ${item.averageRating}/5` : ''}</p>` : ''}${item.bookingCount ? `<p class="card-proof">${item.bookingCount} ${item.bookingCount===1?'finished set':'finished sets'} through Lune</p>` : ''}
         <div class="card-tags-list">${(item.tags || []).slice(0,5).map(tag => `<span class="tag-pill">#${esc(tag)}</span>`).join('')}</div>
         <div class="card-footer-btns"><button class="card-preview-action" type="button" data-open-work-preview>Preview the set <span aria-hidden="true">→</span></button></div>
       </div>
@@ -93,7 +99,7 @@
   function inspoCard(item) {
     return `<article class="inspo-card" data-inspo-id="${esc(item.id)}">
       <div class="inspo-img-wrap"><img src="${esc(item.img)}" alt="${esc(item.style)}" loading="lazy"></div>
-      <div class="inspo-info"><span class="inspo-category">${esc(item.category || 'Inspo')}</span><strong class="inspo-style">${esc(item.style)}</strong></div>
+      <div class="inspo-info"><span class="inspo-category">${esc(item.category || 'Inspo')}</span><strong class="inspo-style">${esc(item.style)}</strong>${item.reviewCount ? `<small class="card-proof">Reviewed ${item.reviewCount} time${item.reviewCount===1?'':'s'}${item.averageRating ? ` · ${item.averageRating}/5` : ''}</small>` : ''}</div>
     </article>`;
   }
 
