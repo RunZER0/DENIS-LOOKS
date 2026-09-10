@@ -109,7 +109,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   async function orderRow(orderId) {
     const { rows } = await pool.query(`SELECT o.*,l.name AS location_name,l.address AS location_address,l.area AS location_area,
       l.latitude AS location_latitude,l.longitude AS location_longitude,l.google_maps_url,l.experience_tier,
-      p.id AS partner_id,p.name AS partner_name,p.commission_bps,
+      p.id AS partner_id,p.name AS partner_name,p.email AS partner_email,l.email AS location_email,p.commission_bps,
       t.name AS technician_name,s.title AS service_title,s.capabilities AS service_capabilities
       FROM lune_orders o
       LEFT JOIN lune_partner_locations l ON l.id=o.allocated_location_id
@@ -250,6 +250,13 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
         subject:'You’re confirmed with Lune',
         html:confirmationEmail(emailOrder)
       }).catch(() => {});
+      if (emailOrder.partner_id) {
+        notifier.partner({
+          partnerId:emailOrder.partner_id,locationId:emailOrder.allocated_location_id,orderId:emailOrder.id,allocationId:null,
+          to:emailOrder.location_email || emailOrder.partner_email,type:'booking_confirmed',subject:'Confirmed Lune booking',
+          html:`<p>Your Lune booking is confirmed.</p><p><strong>${emailEscape(emailOrder.item_snapshot?.title || 'Lune appointment')}</strong><br>${emailEscape(appointmentTime(emailOrder.scheduled_for))}<br>${emailEscape(emailOrder.customer_name || 'Client')}</p><p>Everything you need is in Partner space.</p>`
+        }).catch(() => {});
+      }
       return order;
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
@@ -260,6 +267,21 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   app.get('/api/access', requireDb, asyncRoute(async (req,res) => {
     const ctx = await accessContext(req);
     res.json({ user:publicAccessUser(ctx.user), isAdmin:ctx.isAdmin, memberships:ctx.memberships });
+  }));
+
+  app.post('/api/partner-applications', requireDb, asyncRoute(async (req,res) => {
+    const studioName = safe(req.body?.studioName,160), contactName = safe(req.body?.contactName,120);
+    const email = safe(req.body?.email,200).toLowerCase();
+    if (!studioName || !contactName || !validEmail(email)) return res.status(400).json({ error:'studio_contact_and_email_required' });
+    const services = Array.isArray(req.body?.services) ? req.body.services.map(x => safe(x,60)).filter(Boolean).slice(0,12) : [];
+    const applicationId = id('app');
+    await pool.query(`INSERT INTO lune_partner_applications
+      (id,studio_name,contact_name,email,phone,area,address,team_size,portfolio_url,instagram_url,services,client_experience,select_interest)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      [applicationId,studioName,contactName,email,safe(req.body?.phone,50)||null,safe(req.body?.area,120)||null,safe(req.body?.address,300)||null,
+       Math.max(1,Math.min(100,Number(req.body?.teamSize || 1))),safe(req.body?.portfolioUrl,600)||null,safe(req.body?.instagramUrl,600)||null,services,safe(req.body?.clientExperience,1000)||null,Boolean(req.body?.selectInterest)]);
+    notifier.customer({ to:email,subject:'We have your Lune application',html:`<p>Hi ${emailEscape(contactName)}, we have your application for ${emailEscape(studioName)}.</p><p>We will review the work, the client experience and the fit before we come back to you.</p>` }).catch(() => {});
+    res.status(201).json({ ok:true,id:applicationId });
   }));
 
   app.get('/api/services', requireDb, asyncRoute(async (_req,res) => {
@@ -317,7 +339,9 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     const experience = ['closest','select','calm','same'].includes(req.body?.experiencePreference) ? req.body.experiencePreference : 'closest';
     const preferredLocationId = safe(req.body?.preferredLocationId,160) || null;
     const forcePreferred = Boolean(req.body?.forcePreferredLocation && preferredLocationId);
-    const subtotal = itemKind === 'work' && Number(item.price_kes || item.priceKes) > 0 ? Number(item.price_kes || item.priceKes) : Number(service.base_price_kes);
+    const servicePrice = itemKind === 'work' && Number(item.price_kes || item.priceKes) > 0 ? Number(item.price_kes || item.priceKes) : Number(service.base_price_kes);
+    const experienceFee = experience === 'select' ? 500 : 0;
+    const subtotal = servicePrice + experienceFee;
     const offerResult = await activeOfferFor({ code:safe(req.body?.offerCode,80),user,visitor,subtotalKes:subtotal });
     const discount = offerResult.discountKes;
     const amount = Math.max(0,subtotal-discount);
@@ -335,12 +359,12 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     await pool.query(`INSERT INTO lune_orders
       (id,user_id,visitor_id,item_kind,item_id,item_snapshot,preferred_location_id,experience_preference,scheduled_for,status,
        amount_kes,payment_status,customer_name,customer_email,customer_phone,requested_area,requested_latitude,requested_longitude,
-       duration_minutes,service_code,force_preferred_location,subtotal_kes,discount_kes,currency,access_token_hash,source,referral_code)
-      VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,'matching',$10,'unpaid',$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,'KES',$22,$23,$24)`,
+       duration_minutes,service_code,force_preferred_location,subtotal_kes,discount_kes,experience_fee_kes,currency,access_token_hash,source,referral_code)
+      VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,'matching',$10,'unpaid',$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,'KES',$23,$24,$25)`,
       [orderId,user?.id || null,visitor.id,itemKind,itemId,json(snapshot),preferredLocationId,experience,when.toISOString(),amount,
        customerName || null,customerEmail,customerPhone,safe(req.body?.area,120) || null,
        req.body?.latitude == null ? null : Number(req.body.latitude),req.body?.longitude == null ? null : Number(req.body.longitude),
-       Number(service.duration_minutes),service.code,forcePreferred,subtotal,discount,hash(accessToken),source,safe(req.body?.referralCode,80) || null]);
+       Number(service.duration_minutes),service.code,forcePreferred,subtotal,discount,experienceFee,hash(accessToken),source,safe(req.body?.referralCode,80) || null]);
     await allocator.recordEvent(orderId,'order_created',null,'matching',{experience,serviceCode:service.code,offerCode:offerResult.offer?.code || null},user ? 'user':'visitor',user?.id || visitor.id);
     const allocation = await allocator.allocateOrder(orderId);
     if (offerResult.offer) {
@@ -624,6 +648,22 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       (SELECT count(*)::int FROM lune_partner_members m WHERE m.partner_id=p.id AND m.status='active') AS members
       FROM lune_partners p ORDER BY p.created_at DESC`);
     res.json({ partners:rows });
+  }));
+
+  app.get('/api/admin/partner-applications', requireDb, asyncRoute(async (req,res) => {
+    await requireAdmin(req);
+    const { rows } = await pool.query('SELECT * FROM lune_partner_applications ORDER BY created_at DESC LIMIT 200');
+    res.json({ applications:rows });
+  }));
+
+  app.patch('/api/admin/partner-applications/:id', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const status = ['received','reviewing','accepted','not_now'].includes(req.body?.status) ? req.body.status : null;
+    if (!status) return res.status(400).json({ error:'application_status_required' });
+    const { rows } = await pool.query(`UPDATE lune_partner_applications SET status=$2,review_notes=$3,reviewed_by=$4,reviewed_at=now(),updated_at=now() WHERE id=$1 RETURNING *`,[req.params.id,status,safe(req.body?.reviewNotes,1000)||null,ctx.user.id]);
+    if (!rows[0]) return res.status(404).json({ error:'application_not_found' });
+    await logAdmin(ctx.user.id,'partner.application.review','partner_application',rows[0].id,{status});
+    res.json({ application:rows[0] });
   }));
 
   app.post('/api/admin/partners', requireDb, asyncRoute(async (req,res) => {

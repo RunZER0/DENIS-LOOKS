@@ -14,10 +14,12 @@ const pool = new Pool({
 
 (async () => {
   try {
-    const file = path.join(__dirname, '..', 'migrations', '001_lune_identity_and_persistence.sql');
-    const sql = fs.readFileSync(file, 'utf8');
-    await pool.query(sql);
-    console.log('Lune migration 001 applied');
+    const directory = path.join(__dirname, '..', 'migrations');
+    const files = fs.readdirSync(directory).filter(name => /^\d+_.*\.sql$/.test(name)).sort();
+    for (const name of files) {
+      await pool.query(fs.readFileSync(path.join(directory, name), 'utf8'));
+      console.log(`Lune migration ${name} applied`);
+    }
   } catch (err) {
     console.error(err);
     process.exitCode = 1;

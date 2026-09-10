@@ -54,7 +54,8 @@
     const labels={closest:'Closest fit',select:'Lune Select',calm:'Calm',same:'Same place'};
     const chosen=state.matches.find(m=>m.locationId===state.selectedLocationId);
     const area=chosen?chosen.name:(currentArea()||'Not chosen');
-    const price=state.item&&state.service ? (state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)) : 0;
+    const basePrice=state.item&&state.service ? (state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)) : 0;
+    const price=basePrice+(experience()==='select'?500:0);
     target.innerHTML=`<div class="summary-row"><span>When</span><strong>${esc(when)}</strong></div><div class="summary-row"><span>Experience</span><strong>${esc(labels[experience()]||'Closest fit')}</strong></div><div class="summary-row"><span>${chosen?'Station':'Area'}</span><strong>${esc(area)}</strong></div><div class="summary-row"><span>Estimate</span><strong>${price?money(price):'—'}</strong></div>`;
   }
 
@@ -132,7 +133,8 @@
   function finalSummary(){
     const target=$('[data-final-summary]');if(!target)return;
     const match=state.matches.find(m=>m.locationId===state.selectedLocationId);const title=state.item?.title||state.item?.style||'Your set';
-    target.innerHTML=`<div class="eyebrow">BEFORE LUNE SENDS IT</div><h3>${esc(title)}</h3><div class="summary-list"><div class="summary-row"><span>Time</span><strong>${esc(new Date(scheduledIso()).toLocaleString('en-KE',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))}</strong></div><div class="summary-row"><span>Routing</span><strong>${esc(match?match.name:(experience()==='same'&&state.previousLocationName?state.previousLocationName:'Lune chooses'))}</strong></div><div class="summary-row"><span>Payment</span><strong>After station acceptance</strong></div></div>`;
+    const base=state.item&&state.service?(state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)):0;const fee=experience()==='select'?500:0;
+    target.innerHTML=`<div class="eyebrow">BEFORE LUNE SENDS IT</div><h3>${esc(title)}</h3><div class="summary-list"><div class="summary-row"><span>Time</span><strong>${esc(new Date(scheduledIso()).toLocaleString('en-KE',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))}</strong></div><div class="summary-row"><span>Routing</span><strong>${esc(match?match.name:(experience()==='same'&&state.previousLocationName?state.previousLocationName:'Lune chooses'))}</strong></div>${fee?`<div class="summary-row"><span>Lune Select</span><strong>+ KSh 500</strong></div>`:''}<div class="summary-row"><span>Estimate</span><strong>${base?money(base+fee):'—'}</strong></div><div class="summary-row"><span>Payment</span><strong>After station acceptance</strong></div></div>`;
   }
 
   function storeOrderToken(orderId,accessToken){

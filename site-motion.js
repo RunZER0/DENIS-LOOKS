@@ -2,6 +2,7 @@
   'use strict';
 
   const html = document.documentElement;
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}), { once:true });
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   html.classList.add('motion-ready');
 

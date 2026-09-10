@@ -3,7 +3,7 @@ services:
     name: lune-web
     env: node
     plan: free
-    buildCommand: npm ci && npm run check
+    buildCommand: npm ci && npm run migrate && npm run check
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true

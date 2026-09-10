@@ -446,6 +446,8 @@
     document.querySelectorAll('.inspo-rail[id]').forEach(rail => {
       syncInspoRailControls(rail);
       rail.addEventListener('scroll', () => syncInspoRailControls(rail), { passive:true });
+      new MutationObserver(() => syncInspoRailControls(rail)).observe(rail, { childList:true, subtree:true });
+      if ('ResizeObserver' in window) new ResizeObserver(() => syncInspoRailControls(rail)).observe(rail);
     });
     document.addEventListener('lune:dialog-item', event => {
       const dialog = event.target.closest?.('#work-lightbox') || document.getElementById('work-lightbox');
