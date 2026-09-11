@@ -802,7 +802,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       await client.query('BEGIN');
       const { rows } = await client.query(`SELECT s.*,o.service_code,o.amount_kes,svc.base_price_kes
         FROM lune_partner_work_submissions s JOIN lune_orders o ON o.id=s.order_id
-        LEFT JOIN lune_services svc ON svc.code=o.service_code WHERE s.id=$1 FOR UPDATE`,[req.params.id]);
+        LEFT JOIN lune_services svc ON svc.code=o.service_code WHERE s.id=$1 FOR UPDATE OF s`,[req.params.id]);
       const submission = rows[0];
       if (!submission) throw Object.assign(new Error('work_submission_not_found'),{status:404});
       if (submission.status === 'approved' && submission.published_work_id) { result={ id:submission.published_work_id,alreadyApproved:true }; }
