@@ -759,10 +759,53 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     const ctx = await requireAdmin(req);
     const status = ['received','reviewing','accepted','not_now'].includes(req.body?.status) ? req.body.status : null;
     if (!status) return res.status(400).json({ error:'application_status_required' });
+    const previous = await pool.query('SELECT status FROM lune_partner_applications WHERE id=$1 LIMIT 1',[req.params.id]);
     const { rows } = await pool.query(`UPDATE lune_partner_applications SET status=$2,review_notes=$3,reviewed_by=$4,reviewed_at=now(),updated_at=now() WHERE id=$1 RETURNING *`,[req.params.id,status,safe(req.body?.reviewNotes,1000)||null,ctx.user.id]);
     if (!rows[0]) return res.status(404).json({ error:'application_not_found' });
+    if (status === 'accepted' && previous.rows[0]?.status !== 'accepted') {
+      const accountLink = `${requestBase(req)}/account.html`;
+      notifier.customer({ to:rows[0].email, subject:'Your Lune partner application is accepted', html:`<p>Hi ${emailEscape(rows[0].contact_name)}, we would like to continue with ${emailEscape(rows[0].studio_name)}.</p><p>Create or sign in to your Lune account using this email so we can activate your partner space.</p><p><a href="${emailEscape(accountLink)}">Open Your Lune →</a></p>` }).catch(() => {});
+    }
     await logAdmin(ctx.user.id,'partner.application.review','partner_application',rows[0].id,{status});
     res.json({ application:rows[0] });
+  }));
+
+  app.post('/api/admin/partner-applications/:id/onboard', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const client = await pool.connect();
+    let result;
+    try {
+      await client.query('BEGIN');
+      const applicationResult = await client.query('SELECT * FROM lune_partner_applications WHERE id=$1 FOR UPDATE',[req.params.id]);
+      const application = applicationResult.rows[0];
+      if (!application) throw Object.assign(new Error('application_not_found'),{status:404});
+      if (application.status !== 'accepted') throw Object.assign(new Error('application_not_accepted'),{status:409});
+      if (application.partner_id) {
+        result = { partnerId:application.partner_id, alreadyOnboarded:true };
+      } else {
+        if (!application.address) throw Object.assign(new Error('partner_application_address_required'),{status:409});
+        const userResult = await client.query('SELECT id FROM lune_users WHERE email=$1 LIMIT 1',[application.email]);
+        if (!userResult.rows[0]) throw Object.assign(new Error('partner_member_account_required'),{status:409});
+        const partnerId = id('par'), locationId = id('loc'), memberId = id('mem');
+        await client.query(`INSERT INTO lune_partners (id,name,email,phone,status,commission_bps)
+          VALUES($1,$2,$3,$4,'pending',0)`,[partnerId,application.studio_name,application.email,application.phone || null]);
+        await client.query(`INSERT INTO lune_partner_locations
+          (id,partner_id,name,address,area,experience_tier,experience_tags,email,phone,acceptance_mode,active)
+          VALUES($1,$2,$3,$4,$5,'standard',$6,$7,$8,'manual',true)`,
+          [locationId,partnerId,application.studio_name,application.address,application.area || null,application.services || [],application.email,application.phone || null]);
+        await client.query(`INSERT INTO lune_partner_members (id,user_id,partner_id,location_id,role,status)
+          VALUES($1,$2,$3,$4,'manager','active')`,[memberId,userResult.rows[0].id,partnerId,locationId]);
+        await client.query(`UPDATE lune_partner_applications
+          SET partner_id=$2,onboarding_completed_at=now(),updated_at=now() WHERE id=$1`,[application.id,partnerId]);
+        result = { partnerId, locationId, alreadyOnboarded:false };
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally { client.release(); }
+    await logAdmin(ctx.user.id,'partner.application.onboard','partner_application',req.params.id,result);
+    res.status(result.alreadyOnboarded ? 200 : 201).json({ ok:true, ...result, next:'Add technicians and capabilities, then activate the partner when the station is ready for bookings.' });
   }));
 
   app.post('/api/admin/catalog/:kind', requireDb, asyncRoute(async (req,res) => {
@@ -940,7 +983,25 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   app.get('/api/admin/payouts', requireDb, asyncRoute(async (req,res) => {
     await requireAdmin(req);
     const { rows } = await pool.query(`SELECT pp.*,p.name AS partner_name,p.paystack_recipient_code FROM lune_partner_payouts pp JOIN lune_partners p ON p.id=pp.partner_id ORDER BY pp.created_at DESC LIMIT 300`);
-    res.json({ payouts:rows });
+    const summary = rows.reduce((total,payout) => {
+      const status = payout.status || 'held', amount = Number(payout.net_kes || 0);
+      total[status] = (total[status] || 0) + amount;
+      if (!['paid','reversed'].includes(status)) total.unpaid += amount;
+      if (status === 'payable') total.ready += amount;
+      return total;
+    }, { unpaid:0, ready:0 });
+    res.json({ payouts:rows, summary });
+  }));
+
+  app.post('/api/admin/email-test', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const result = await notifier.customer({
+      to:ctx.user.email,
+      subject:'Lune email delivery test',
+      html:'<p>This is a Lune delivery test requested from Operations.</p>'
+    });
+    await logAdmin(ctx.user.id,'email.test','email',ctx.user.email,{ status:result.status, providerMessageId:result.payload?.messageId || null });
+    res.json({ ok:true, status:result.status, providerMessageId:result.payload?.messageId || null, error:result.error || result.reason || null });
   }));
 
   app.post('/api/admin/payouts/:id/send', requireDb, asyncRoute(async (req,res) => {

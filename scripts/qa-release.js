@@ -18,6 +18,8 @@ const admin=read('admin.html');
 const adminLaunch=read('admin-launch.js');
 const adminWorkReview=read('admin-work-review.js');
 const motion=read('site-motion.js');
+const homeEdit=read('home-edit.js');
+const envExample=read('.env.example');
 
 assert(server.includes("require('./lune-ops-loader')"),'production server must use hardened ops loader');
 assert(server.includes('req.rawBody = Buffer.from(buf)'),'Paystack webhook raw body must be preserved');
@@ -41,6 +43,9 @@ assert(admin.includes('data-admin-orders')&&admin.includes('data-payout-list'),'
 assert(admin.includes('admin-launch.js')&&adminLaunch.includes('data-technician-form')&&adminLaunch.includes('data-member-form'),'partner onboarding controls missing from admin');
 assert(adminLaunch.includes('data-catalog-list')&&adminLaunch.includes('/admin/audit'),'curation or audit controls missing from admin');
 assert(admin.includes('admin-work-review.js')&&adminWorkReview.includes('/admin/work-submissions'),'partner work approval controls missing from admin');
+assert(admin.includes('admin-applications.js')&&read('admin-applications.js').includes('/onboard'),'partner application handoff is missing');
+assert(homeEdit.includes('/api/catalog/work')&&homeEdit.includes('SET OF THE MONTH'),'home editorial rotation is missing');
+assert(envExample.includes('PAYSTACK_SECRET_KEY')&&envExample.includes('PAYSTACK_PUBLIC_KEY'),'Paystack environment variables are not documented');
 assert(partnerJs.includes('/partner/orders/')&&partnerJs.includes('/work'),'partner finished-work submission is missing');
 assert(motion.includes('lune-data.js')&&motion.includes('booking-links.js'),'public continuity scripts must load globally');
 

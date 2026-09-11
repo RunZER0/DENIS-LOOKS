@@ -75,6 +75,9 @@ const experience = fs.readFileSync('experience-v4.js', 'utf8');
 if (!experience.includes('syncInspoPrice') || !experience.includes('matchesInspoMood')) fail('experience-v4.js', 'inspiration price disclosure or feeling-led filtering is missing');
 const motion = fs.readFileSync('site-motion.js', 'utf8');
 if (!motion.includes('membership-experience.js')) fail('site-motion.js', 'membership invitation is not available across public discovery pages');
+const home = fs.readFileSync('index.html', 'utf8');
+const homeEdit = fs.readFileSync('home-edit.js', 'utf8');
+if (!home.includes('home-edit.js') || !homeEdit.includes('SET OF THE MONTH')) fail('index.html', 'home highlight does not rotate with the monthly set');
 
 const standard = fs.readFileSync('standard.html', 'utf8');
 for (const phrase of ['The part you do not', 'A good base', 'Built around', 'Clean tools.', 'Different artists.']) {

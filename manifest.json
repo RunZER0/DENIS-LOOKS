@@ -1,1 +1,1 @@
-{"name":"Lune","short_name":"Lune","start_url":"/index.html","display":"standalone","background_color":"#f4eee6","theme_color":"#963f55","description":"Nails, kept personal.","icons":[{"src":"/lune-app-icon-v2.png","sizes":"1024x1024","type":"image/png","purpose":"any maskable"}]}
+{"name":"Lune","short_name":"Lune","start_url":"/index.html","display":"standalone","background_color":"#f4eee6","theme_color":"#963f55","description":"Nails, kept personal.","icons":[{"src":"/lune-pwa-icon.jpg","sizes":"1254x1254","type":"image/jpeg","purpose":"any maskable"}]}

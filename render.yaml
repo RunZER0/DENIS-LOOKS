@@ -14,6 +14,8 @@ services:
         sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
       - key: BREVO_API_KEY
         sync: false
       - key: LUNE_EMAIL_FROM
@@ -22,3 +24,5 @@ services:
         sync: false
       - key: PUBLIC_BASE_URL
         sync: false
+      - key: LUNE_PARTNER_RESPONSE_MINUTES
+        value: "15"
