@@ -222,7 +222,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
         FROM lune_payments p JOIN lune_orders o ON o.id=p.order_id
         LEFT JOIN lune_partner_locations l ON l.id=o.allocated_location_id
         LEFT JOIN lune_partners pt ON pt.id=l.partner_id
-        WHERE p.reference=$1 FOR UPDATE`, [reference]);
+        WHERE p.reference=$1 FOR UPDATE OF p`, [reference]);
       const payment = pr.rows[0];
       if (!payment) throw Object.assign(new Error('payment_not_found'), { status:404 });
       if (payment.status === 'paid') {
