@@ -6,9 +6,9 @@
   <title>Your Lune</title>
   <meta name="description" content="Keep your Lune saves, taste and bookings together across devices.">
   <meta name="theme-color" content="#f4eee6">
-  <link rel="stylesheet" href="site-v2.css?v=20260907c">
+  <link rel="stylesheet" href="site-v2.css?v=20260911a">
   <link rel="stylesheet" href="experience-v3.css?v=20260907c">
-  <link rel="stylesheet" href="account.css?v=20260909a">
+  <link rel="stylesheet" href="account.css?v=20260911b">
 </head>
 <body class="lune-account-page">
   <header class="site-header">
@@ -34,10 +34,11 @@
     <section class="account-intro">
       <div class="eyebrow">YOUR LUNE</div>
       <h1 class="display">Keep your taste<br>within reach.</h1>
-      <p class="lede">Saves, directions and bookings can follow you from one device to the next.</p>
+      <p class="lede">A place for the sets you kept, the appointments ahead, and the directions worth returning to.</p>
     </section>
 
     <section class="account-panel" data-account-guest>
+      <p class="account-return-note" data-account-return-note hidden></p>
       <div class="account-tabs" role="tablist" aria-label="Account options">
         <button type="button" class="account-tab is-active" data-account-tab="login">Sign in</button>
         <button type="button" class="account-tab" data-account-tab="register">Create account</button>
@@ -60,28 +61,38 @@
       </form>
     </section>
 
-    <section class="account-panel" data-account-member hidden>
+    <section class="account-panel account-member" data-account-member hidden>
       <div class="account-member-head">
-        <div><div class="eyebrow">WELCOME BACK</div><h2 class="display" data-account-name>Your Lune</h2><p data-account-email></p></div>
+        <div><div class="eyebrow">YOUR LUNE</div><h2 class="display" data-account-name>Your Lune</h2><p data-account-email></p></div>
         <button class="quiet-action" type="button" data-logout>Sign out</button>
       </div>
 
-      <form class="account-form account-profile-form" data-profile-form>
-        <label>Name<input type="text" name="displayName" autocomplete="name" maxlength="120"></label>
-        <label>Phone<input type="tel" name="phone" autocomplete="tel" maxlength="40"></label>
-        <button class="quiet-action" type="submit">Save details</button>
-        <p class="account-status" data-profile-status aria-live="polite"></p>
-      </form>
+      <section class="account-now" data-account-now>
+        <div class="eyebrow">YOUR NEXT MOVE</div>
+        <div data-account-now-content><p class="account-muted">Bringing your Lune together…</p></div>
+      </section>
+
+      <section class="account-offer" data-account-offer hidden></section>
 
       <div class="account-continuation-grid">
-        <a class="account-continuation" href="favorites.html"><span>SAVED</span><strong>Your shortlist</strong><em>Keep choosing from what stayed with you.</em></a>
-        <a class="account-continuation" href="inspo.html"><span>INSPO</span><strong>Find the next direction</strong><em>Something familiar, something new.</em></a>
+        <a class="account-continuation" href="favorites.html"><span>SAVED</span><strong>Your shortlist</strong><em>The references and finished sets that stayed with you.</em></a>
+        <a class="account-continuation" href="inspo.html"><span>INSPO</span><strong>Find a new direction</strong><em>Start familiar, then see where your taste goes next.</em></a>
       </div>
 
       <div class="account-orders">
-        <div class="eyebrow">BOOKINGS</div>
+        <div class="account-section-head"><div><div class="eyebrow">YOUR APPOINTMENTS</div><h3>Every appointment, kept in view.</h3></div><a class="text-link" href="work.html">Book a new set <span class="arrow">→</span></a></div>
         <div data-account-orders><p class="account-muted">No bookings yet.</p></div>
       </div>
+
+      <details class="account-details">
+        <summary><span>ACCOUNT DETAILS</span><strong>Personal details</strong></summary>
+        <form class="account-form account-profile-form" data-profile-form>
+          <label>Name<input type="text" name="displayName" autocomplete="name" maxlength="120"></label>
+          <label>Phone<input type="tel" name="phone" autocomplete="tel" maxlength="40"></label>
+          <button class="quiet-action" type="submit">Save details</button>
+          <p class="account-status" data-profile-status aria-live="polite"></p>
+        </form>
+      </details>
     </section>
   </main>
 
@@ -95,6 +106,6 @@
   </footer>
 
   <script src="site-motion.js?v=20260907f"></script>
-  <script src="account.js?v=20260907b"></script>
+  <script src="account.js?v=20260911b"></script>
 </body>
 </html>

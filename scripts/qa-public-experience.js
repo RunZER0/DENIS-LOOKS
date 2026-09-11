@@ -53,11 +53,41 @@ if (!inspo.includes('data-inspo-mood')) fail('inspo.html', 'inspo does not start
 const saved = fs.readFileSync('favorites.html', 'utf8');
 if (!saved.includes('taste-recommendations')) fail('favorites.html', 'Saved has no recommendation recovery surface');
 
+const account = fs.readFileSync('account.html', 'utf8');
+for (const marker of ['data-account-now-content', 'data-account-offer', 'data-account-orders', 'ACCOUNT DETAILS']) {
+  if (!account.includes(marker)) fail('account.html', `account home is missing: ${marker}`);
+}
+const accountRuntime = fs.readFileSync('account.js', 'utf8');
+for (const marker of ['booking.html?reorder=', 'renderDashboard()', 'if (next) location.assign(next)']) {
+  if (!accountRuntime.includes(marker)) fail('account.js', `signed-in continuity is missing: ${marker}`);
+}
+const bookingRuntime = fs.readFileSync('booking.js', 'utf8');
+for (const marker of ['offerDiscount(total)', 'Total after offer', 'The total below includes it']) {
+  if (!bookingRuntime.includes(marker)) fail('booking.js', `checkout offer transparency is missing: ${marker}`);
+}
+const orderRuntime = fs.readFileSync('order.js', 'utf8');
+if (!orderRuntime.includes('Lune offer applied')) fail('order.js', 'confirmed order does not disclose its applied offer');
+const membership = fs.readFileSync('membership-experience.js', 'utf8');
+if (membership.includes('10% on selected appointments')) fail('membership-experience.js', 'Circle promises an unconfigured fixed discount');
+
 if (catalog.includes('card-badge-price')) fail('public-catalog.js', 'price is shown before the visitor opens a work preview');
 const experience = fs.readFileSync('experience-v4.js', 'utf8');
 if (!experience.includes('syncInspoPrice') || !experience.includes('matchesInspoMood')) fail('experience-v4.js', 'inspiration price disclosure or feeling-led filtering is missing');
 const motion = fs.readFileSync('site-motion.js', 'utf8');
 if (!motion.includes('membership-experience.js')) fail('site-motion.js', 'membership invitation is not available across public discovery pages');
+
+const standard = fs.readFileSync('standard.html', 'utf8');
+for (const phrase of ['The part you do not', 'A good base', 'Built around', 'Clean tools.', 'Different artists.']) {
+  if (!standard.includes(phrase)) fail('standard.html', `revised Standard copy is missing: ${phrase}`);
+}
+for (const phrase of ['Care you can', 'It begins<br>with care', 'Care you should never']) {
+  if (standard.includes(phrase)) fail('standard.html', `repetitive care-led copy remains: ${phrase}`);
+}
+
+const booking = fs.readFileSync('booking.js', 'utf8');
+if (!booking.includes('Lune could not load this direction right now')) fail('booking.js', 'temporary catalogue failures are incorrectly presented as a removed look');
+const coreStyles = fs.readFileSync('site-v2-core.css', 'utf8');
+if (coreStyles.includes('@view-transition')) fail('site-v2-core.css', 'native View Transition conflicts with the Lune page transition');
 
 if (failures.length) {
   console.error(`Lune experience QA failed (${failures.length})`);

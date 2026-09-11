@@ -168,5 +168,5 @@
   loadScript('taste-engine-v5.js?v=20260908a','data-lune-taste-engine','5');
   loadScript('discovery-experience.js?v=20260908a','data-lune-discovery');
   loadScript('booking-links.js?v=20260908a','data-lune-booking-links');
-  loadScript('membership-experience.js?v=20260908a','data-lune-membership');
+  loadScript('membership-experience.js?v=20260911b','data-lune-membership');
 })();

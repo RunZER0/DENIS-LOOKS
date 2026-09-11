@@ -39,6 +39,12 @@
 
   function experience(){return form.elements.experience?.value||'closest';}
   function currentArea(){return form.elements.area?.value?.trim()||'';}
+  function offerDiscount(total){
+    const reward=state.offer?.reward||{};if(!total||!state.offer||form.elements.offerCode?.value!==state.offer.code)return 0;
+    if(reward.type==='percent')return Math.min(total,Math.round(total*Math.max(0,Math.min(100,Number(reward.percent||0)))/100));
+    if(reward.type==='fixed_kes')return Math.min(total,Math.max(0,Math.round(Number(reward.amount||0))));
+    return 0;
+  }
 
   function renderLook(){
     const target=$('[data-look-summary]');if(!target)return;
@@ -56,7 +62,7 @@
     const area=chosen?chosen.name:(currentArea()||'Not chosen');
     const basePrice=state.item&&state.service ? (state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)) : 0;
     const price=basePrice+(experience()==='select'?500:0);
-    const party=Number(form.elements.groupSize?.value||1);target.innerHTML=`<div class="summary-row"><span>When</span><strong>${esc(when)}</strong></div><div class="summary-row"><span>Experience</span><strong>${esc(labels[experience()]||'Closest fit')}</strong></div><div class="summary-row"><span>${chosen?'Station':'Area'}</span><strong>${esc(area)}</strong></div>${party>1?`<div class="summary-row"><span>Coming together</span><strong>${party} people</strong></div>`:''}<div class="summary-row"><span>Estimate</span><strong>${price?money(price):'—'}</strong></div>`;
+    const party=Number(form.elements.groupSize?.value||1),discount=offerDiscount(price);target.innerHTML=`<div class="summary-row"><span>When</span><strong>${esc(when)}</strong></div><div class="summary-row"><span>Experience</span><strong>${esc(labels[experience()]||'Closest fit')}</strong></div><div class="summary-row"><span>${chosen?'Station':'Area'}</span><strong>${esc(area)}</strong></div>${party>1?`<div class="summary-row"><span>Coming together</span><strong>${party} people</strong></div>`:''}${discount?`<div class="summary-row"><span>Before Lune offer</span><strong>${money(price)}</strong></div><div class="summary-row"><span>Lune offer</span><strong>− ${money(discount)}</strong></div>`:''}<div class="summary-row"><span>${discount?'Estimate after offer':'Estimate'}</span><strong>${price?money(price-discount):'—'}</strong></div>`;
   }
 
   async function chooseFallback(){
@@ -89,7 +95,15 @@
       const data=await request(`/booking/item?kind=${encodeURIComponent(state.itemKind)}&id=${encodeURIComponent(state.itemId)}`);
       state.item=data.item;state.service=data.service;renderLook();renderSummary();
       const image=state.item?.imageUrl||state.item?.image_url; if(image) document.documentElement.style.setProperty('--booking-image',`url("${String(image).replace(/"/g,'')}")`);
-    }catch(err){status($('[data-step="1"] [data-step-status]'),'That look is no longer available. Pick another direction.',true);state.item=null;renderLook();chooseFallback();}
+    }catch(err){
+      const unavailable = Number(err?.status) === 404;
+      status(
+        $('[data-step="1"] [data-step-status]'),
+        unavailable ? 'That look is no longer available. Pick another direction.' : 'Lune could not load this direction right now. Try again shortly, or choose another set.',
+        true
+      );
+      state.item=null;renderLook();chooseFallback();
+    }
   }
 
   function syncExperienceCards(){
@@ -134,7 +148,7 @@
     const target=$('[data-final-summary]');if(!target)return;
     const match=state.matches.find(m=>m.locationId===state.selectedLocationId);const title=state.item?.title||state.item?.style||'Your set';
     const base=state.item&&state.service?(state.itemKind==='work'&&Number(state.item.priceKes||state.item.price_kes)>0?Number(state.item.priceKes||state.item.price_kes):Number(state.service.basePriceKes||state.service.base_price_kes)):0;const fee=experience()==='select'?500:0;
-    target.innerHTML=`<div class="eyebrow">BEFORE LUNE SENDS IT</div><h3>${esc(title)}</h3><div class="summary-list"><div class="summary-row"><span>Time</span><strong>${esc(new Date(scheduledIso()).toLocaleString('en-KE',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))}</strong></div><div class="summary-row"><span>Routing</span><strong>${esc(match?match.name:(experience()==='same'&&state.previousLocationName?state.previousLocationName:'Lune chooses'))}</strong></div>${fee?`<div class="summary-row"><span>Lune Select</span><strong>+ KSh 500</strong></div>`:''}<div class="summary-row"><span>Estimate</span><strong>${base?money(base+fee):'—'}</strong></div><div class="summary-row"><span>Payment</span><strong>After station acceptance</strong></div></div>`;
+    const total=base+fee,discount=offerDiscount(total);target.innerHTML=`<div class="eyebrow">BEFORE LUNE SENDS IT</div><h3>${esc(title)}</h3><div class="summary-list"><div class="summary-row"><span>Time</span><strong>${esc(new Date(scheduledIso()).toLocaleString('en-KE',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))}</strong></div><div class="summary-row"><span>Routing</span><strong>${esc(match?match.name:(experience()==='same'&&state.previousLocationName?state.previousLocationName:'Lune chooses'))}</strong></div>${fee?`<div class="summary-row"><span>Lune Select</span><strong>+ KSh 500</strong></div>`:''}${discount?`<div class="summary-row"><span>Before Lune offer</span><strong>${money(total)}</strong></div><div class="summary-row"><span>Lune offer applied</span><strong>− ${money(discount)}</strong></div>`:''}<div class="summary-row"><span>${discount?'Total after offer':'Estimate'}</span><strong>${base?money(total-discount):'—'}</strong></div><div class="summary-row"><span>Payment</span><strong>After station acceptance</strong></div></div>`;
   }
 
   function storeOrderToken(orderId,accessToken){
@@ -164,7 +178,7 @@
   async function continuity(){
     try{
       const query=new URLSearchParams({visitorId:visitorId()});const data=await request(`/continuity?${query}`);
-      state.offer=data.offer||null;if(state.offer&&!params.get('offer')){const field=$('[data-offer-field]');field?.classList.remove('ops-hidden');form.elements.offerCode.value=state.offer.code;const note=document.createElement('p');note.className='ops-muted';note.textContent=state.offer.copy||state.offer.title;field?.appendChild(note);}else if(params.get('offer')){const field=$('[data-offer-field]');field?.classList.remove('ops-hidden');form.elements.offerCode.value=params.get('offer');}
+      state.offer=data.offer||null;if(state.offer&&!params.get('offer')){const field=$('[data-offer-field]');field?.classList.remove('ops-hidden');form.elements.offerCode.value=state.offer.code;const note=document.createElement('p');note.className='ops-muted';note.textContent=`${state.offer.copy||state.offer.title||'Lune offer'} The total below includes it.`;field?.appendChild(note);}else if(params.get('offer')){const field=$('[data-offer-field]');field?.classList.remove('ops-hidden');form.elements.offerCode.value=params.get('offer');}
     }catch(_){}
   }
 
