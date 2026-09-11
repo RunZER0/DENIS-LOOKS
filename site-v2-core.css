@@ -27,12 +27,6 @@ img { max-width: 100%; display: block; }
 button, input { font: inherit; }
 ::selection { background: rgba(141,61,81,.17); }
 
-@view-transition { navigation: auto; }
-::view-transition-old(root) { animation: .38s var(--ease-inout) both vt-out; }
-::view-transition-new(root) { animation: .58s var(--ease-out) both vt-in; }
-@keyframes vt-out { to { opacity: 0; transform: translateY(-8px); } }
-@keyframes vt-in { from { opacity: 0; transform: translateY(12px); } }
-
 .page-transition {
   position: fixed;
   inset: 0;
