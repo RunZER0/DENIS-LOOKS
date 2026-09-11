@@ -12,6 +12,7 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
   const adminEmails = new Set(['www.valdaceai@gmail.com', ...String(process.env.LUNE_ADMIN_EMAILS || '').split(',')].map(x => x.trim().toLowerCase()).filter(Boolean));
   const publicBase = () => String(process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
   const safe = (value, max = 240) => String(value || '').trim().slice(0, max);
+  const slugify = value => safe(value,160).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'lune-set';
   const imageDataUrl = value => {
     const image = String(value || '');
     return /^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=\s]+$/i.test(image) && Buffer.byteLength(image, 'utf8') <= 3 * 1024 * 1024 ? image : null;
@@ -634,6 +635,42 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     res.json({ orders:rows });
   }));
 
+  app.get('/api/partner/work-submissions', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requirePartner(req);
+    const partnerIds = ctx.memberships.map(m => m.partner_id);
+    if (!partnerIds.length) return res.json({ submissions:[] });
+    const { rows } = await pool.query(`SELECT s.*,o.item_snapshot,o.scheduled_for,o.status AS order_status
+      FROM lune_partner_work_submissions s JOIN lune_orders o ON o.id=s.order_id
+      WHERE s.partner_id=ANY($1::text[]) ORDER BY s.updated_at DESC LIMIT 300`,[partnerIds]);
+    res.json({ submissions:rows });
+  }));
+
+  app.post('/api/partner/orders/:id/work', requireDb, asyncRoute(async (req,res) => {
+    const order = await orderRow(req.params.id);
+    if (!order?.partner_id) return res.status(404).json({ error:'order_not_found' });
+    const ctx = await requirePartner(req,order.partner_id);
+    if (!['in_service','completed'].includes(order.status)) return res.status(409).json({ error:'work_upload_not_available' });
+    const image = imageDataUrl(req.body?.imageDataUrl);
+    const title = safe(req.body?.title || order.item_snapshot?.title || order.item_snapshot?.style,160);
+    if (!image || !title) return res.status(400).json({ error:'finished_work_image_and_title_required' });
+    const existing = await pool.query('SELECT id,status FROM lune_partner_work_submissions WHERE order_id=$1 LIMIT 1',[order.id]);
+    if (existing.rows[0]?.status === 'approved') return res.status(409).json({ error:'approved_work_locked' });
+    const category = safe(req.body?.category,120) || safe(order.item_snapshot?.category,120) || null;
+    const style = safe(req.body?.style,180) || safe(order.item_snapshot?.style,180) || null;
+    const description = safe(req.body?.description,1000) || null;
+    const tags = Array.isArray(req.body?.tags) ? req.body.tags.map(tag => safe(tag,60)).filter(Boolean).slice(0,12) : [];
+    let submissionId = existing.rows[0]?.id;
+    if (submissionId) {
+      await pool.query(`UPDATE lune_partner_work_submissions SET title=$2,category=$3,style=$4,description=$5,tags=$6,image_data_url=$7,status='pending',admin_note=NULL,reviewed_by_user_id=NULL,reviewed_at=NULL,updated_at=now() WHERE id=$1`,[submissionId,title,category,style,description,tags,image]);
+    } else {
+      submissionId = id('wsub');
+      await pool.query(`INSERT INTO lune_partner_work_submissions(id,order_id,partner_id,submitted_by_user_id,title,category,style,description,tags,image_data_url,status)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending')`,[submissionId,order.id,order.partner_id,ctx.user.id,title,category,style,description,tags,image]);
+    }
+    await allocator.recordEvent(order.id,'partner_work_submitted',null,null,{submissionId},'partner',ctx.user.id);
+    res.status(201).json({ id:submissionId,status:'pending' });
+  }));
+
   app.get('/api/partner/availability', requireDb, asyncRoute(async (req,res) => {
     const ctx = await requirePartner(req);
     const partnerIds = ctx.memberships.map(m => m.partner_id);
@@ -676,6 +713,10 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
       in_service:['completed']
     };
     if (!(allowed[order.status] || []).includes(next)) return res.status(409).json({ error:'invalid_status_transition' });
+    if (next === 'completed') {
+      const proof = await pool.query(`SELECT id FROM lune_partner_work_submissions WHERE order_id=$1 AND status IN ('pending','approved') LIMIT 1`,[order.id]);
+      if (!proof.rows[0]) return res.status(409).json({ error:'finished_work_required' });
+    }
     const reviewToken = next === 'completed' ? token() : null;
     await pool.query(`UPDATE lune_orders SET status=$2,completed_at=CASE WHEN $2='completed' THEN now() ELSE completed_at END,cancelled_at=CASE WHEN $2='cancelled' THEN now() ELSE cancelled_at END,access_token_hash=COALESCE($3,access_token_hash),updated_at=now() WHERE id=$1`,[order.id,next,reviewToken ? hash(reviewToken) : null]);
     if (next === 'completed') await pool.query(`UPDATE lune_partner_payouts SET status='payable',payable_at=now(),updated_at=now() WHERE order_id=$1 AND status='held'`,[order.id]);
@@ -728,14 +769,67 @@ module.exports = function installLuneOps(app, { pool, requireDb, sessionUser, en
     const ctx = await requireAdmin(req);
     const kind = req.params.kind === 'work' ? 'work' : req.params.kind === 'inspo' ? 'inspo' : null;
     if (!kind) return res.status(400).json({ error:'catalog_kind_required' });
+    if (kind === 'work') return res.status(409).json({ error:'finished_work_requires_partner_approval' });
     const title = safe(req.body?.title,160), imageUrl = imageDataUrl(req.body?.imageDataUrl) || safe(req.body?.imageUrl,1200);
     if (!title || !imageUrl) return res.status(400).json({ error:'title_and_image_required' });
     const slug = safe(req.body?.slug,180) || `${title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}-${Date.now().toString(36)}`;
     const itemId = id(kind === 'work' ? 'set' : 'inspo'), category = safe(req.body?.category,120), tags = Array.isArray(req.body?.tags) ? req.body.tags.map(tag => safe(tag,60)).filter(Boolean).slice(0,12) : [];
-    if (kind === 'work') await pool.query(`INSERT INTO lune_work_items(id,slug,title,category,style,description,image_url,price_kes,tags,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,true)`,[itemId,slug,title,category,safe(req.body?.style,180),safe(req.body?.description,1000),imageUrl,Math.max(0,Number(req.body?.priceKes||0)),tags]);
-    else await pool.query(`INSERT INTO lune_inspo_items(id,slug,title,category,image_url,shape,length,finish,palette,structure,tags,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true)`,[itemId,slug,title,category,imageUrl,safe(req.body?.shape,80)||null,safe(req.body?.length,80)||null,safe(req.body?.finish,120)||null,safe(req.body?.palette,120)||null,safe(req.body?.structure,120)||null,tags]);
+    await pool.query(`INSERT INTO lune_inspo_items(id,slug,title,category,image_url,shape,length,finish,palette,structure,tags,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true)`,[itemId,slug,title,category,imageUrl,safe(req.body?.shape,80)||null,safe(req.body?.length,80)||null,safe(req.body?.finish,120)||null,safe(req.body?.palette,120)||null,safe(req.body?.structure,120)||null,tags]);
     await logAdmin(ctx.user.id,'catalog.create',kind,itemId,{title});
     res.status(201).json({ id:itemId,slug });
+  }));
+
+  app.get('/api/admin/work-submissions', requireDb, asyncRoute(async (req,res) => {
+    await requireAdmin(req);
+    const status = ['pending','approved','rejected'].includes(req.query?.status) ? req.query.status : 'pending';
+    const { rows } = await pool.query(`SELECT s.*,p.name AS partner_name,o.item_snapshot,o.service_code,o.scheduled_for,o.status AS order_status,
+      l.name AS location_name,u.email AS submitted_by_email,w.id AS published_work_id
+      FROM lune_partner_work_submissions s
+      JOIN lune_orders o ON o.id=s.order_id
+      JOIN lune_partners p ON p.id=s.partner_id
+      LEFT JOIN lune_partner_locations l ON l.id=o.allocated_location_id
+      LEFT JOIN lune_users u ON u.id=s.submitted_by_user_id
+      LEFT JOIN lune_work_items w ON w.partner_submission_id=s.id
+      WHERE s.status=$1 ORDER BY s.created_at ASC LIMIT 300`,[status]);
+    res.json({ submissions:rows });
+  }));
+
+  app.post('/api/admin/work-submissions/:id/approve', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const client = await pool.connect();
+    let result;
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(`SELECT s.*,o.service_code,o.amount_kes,svc.base_price_kes
+        FROM lune_partner_work_submissions s JOIN lune_orders o ON o.id=s.order_id
+        LEFT JOIN lune_services svc ON svc.code=o.service_code WHERE s.id=$1 FOR UPDATE`,[req.params.id]);
+      const submission = rows[0];
+      if (!submission) throw Object.assign(new Error('work_submission_not_found'),{status:404});
+      if (submission.status === 'approved' && submission.published_work_id) { result={ id:submission.published_work_id,alreadyApproved:true }; }
+      else {
+        if (submission.status !== 'pending') throw Object.assign(new Error('work_submission_not_pending'),{status:409});
+        const workId = id('set');
+        const slug = `${slugify(submission.title)}-${Date.now().toString(36)}`;
+        const price = Math.max(0,Number(submission.base_price_kes ?? submission.amount_kes ?? 0));
+        await client.query(`INSERT INTO lune_work_items(id,slug,title,category,style,description,image_url,price_kes,tags,active,service_code,source_order_id,partner_submission_id)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,true,$10,$11,$12)`,[workId,slug,submission.title,submission.category,submission.style,submission.description,submission.image_data_url,price,submission.tags || [],submission.service_code || null,submission.order_id,submission.id]);
+        await client.query(`UPDATE lune_partner_work_submissions SET status='approved',published_work_id=$2,admin_note=NULL,reviewed_by_user_id=$3,reviewed_at=now(),updated_at=now() WHERE id=$1`,[submission.id,workId,ctx.user.id]);
+        result={ id:workId,alreadyApproved:false };
+      }
+      await client.query('COMMIT');
+    } catch (err) { await client.query('ROLLBACK'); throw err; } finally { client.release(); }
+    await logAdmin(ctx.user.id,'partner_work.approve','partner_work_submission',req.params.id,{workId:result.id});
+    res.json({ ok:true,workId:result.id,alreadyApproved:result.alreadyApproved });
+  }));
+
+  app.post('/api/admin/work-submissions/:id/reject', requireDb, asyncRoute(async (req,res) => {
+    const ctx = await requireAdmin(req);
+    const note = safe(req.body?.note,600);
+    if (!note) return res.status(400).json({ error:'review_note_required' });
+    const { rows } = await pool.query(`UPDATE lune_partner_work_submissions SET status='rejected',admin_note=$2,reviewed_by_user_id=$3,reviewed_at=now(),updated_at=now() WHERE id=$1 AND status='pending' RETURNING id`,[req.params.id,note,ctx.user.id]);
+    if (!rows[0]) return res.status(409).json({ error:'work_submission_not_pending' });
+    await logAdmin(ctx.user.id,'partner_work.reject','partner_work_submission',req.params.id,{note});
+    res.json({ ok:true });
   }));
 
   app.patch('/api/admin/catalog/:kind/:id', requireDb, asyncRoute(async (req,res) => {

@@ -16,6 +16,7 @@ const partner=read('partner.html');
 const partnerJs=read('partner.js');
 const admin=read('admin.html');
 const adminLaunch=read('admin-launch.js');
+const adminWorkReview=read('admin-work-review.js');
 const motion=read('site-motion.js');
 
 assert(server.includes("require('./lune-ops-loader')"),'production server must use hardened ops loader');
@@ -28,6 +29,7 @@ assert(loader.includes('source_order_id'),'reorders must retain lineage');
 for(const path of ['/app.js','/release-ops.js','/launch-ops.js']) assert(launch.includes(`'${path}'`),`${path} must not be publicly served`);
 assert(launch.includes("/api/partner/technicians"),'partner technician mapping missing');
 assert(launch.includes("/api/admin/audit"),'admin audit mapping missing');
+assert(launch.includes("/api/partner/technicians"),'partner technician mapping missing');
 assert(/env:\s*node/.test(render),'Render must deploy a Node service');
 assert(!build.includes('PAYSTACK_SECRET_KEY'),'build step must not export Paystack secrets');
 assert(fixes.includes("content:'LUNE'"),'page transition must carry Lune branding');
@@ -38,6 +40,8 @@ assert(partner.includes('data-technician-select')&&partnerJs.includes("req('/par
 assert(admin.includes('data-admin-orders')&&admin.includes('data-payout-list'),'admin operations surface missing');
 assert(admin.includes('admin-launch.js')&&adminLaunch.includes('data-technician-form')&&adminLaunch.includes('data-member-form'),'partner onboarding controls missing from admin');
 assert(adminLaunch.includes('data-catalog-list')&&adminLaunch.includes('/admin/audit'),'curation or audit controls missing from admin');
+assert(admin.includes('admin-work-review.js')&&adminWorkReview.includes('/admin/work-submissions'),'partner work approval controls missing from admin');
+assert(partnerJs.includes('/partner/orders/')&&partnerJs.includes('/work'),'partner finished-work submission is missing');
 assert(motion.includes('lune-data.js')&&motion.includes('booking-links.js'),'public continuity scripts must load globally');
 
 for(const page of ['index.html','work.html','inspo.html','favorites.html','standard.html','account.html','booking.html','order.html']){
